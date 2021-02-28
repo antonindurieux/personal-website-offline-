@@ -40,16 +40,15 @@ author:
   avatar   : "/assets/images/bio-photo.jpg"
   bio      : "Data Scientist"
   location : "Paris, France"
+  linkedin : "antonin-durieux"
+  github   : "antonindurieux"
   links:
-    - label: "LinkedIn"
-      icon: "fab fa-fw fa-linkedin"
-      url: "https://www.linkedin.com/in/antonin-durieux/"
-    - label: "GitHub"
-      icon: "fab fa-fw fa-github"
-      url: "https://github.com/antonindurieux"
     - label: "Mail"
       icon: "fas fa-fw fa-envelope-square"
       url: "mailto:antonin.durieux@gmail.com"
+    - label: "Resume"
+      icon: "far fa-fw fa-file-pdf"
+      url: "/assets/files/Antonin_Durieux_resume.pdf"
 
 footer:
   links:
