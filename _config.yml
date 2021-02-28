@@ -18,7 +18,7 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Antonin Durieux
+title: Antonin Durieux | Data Scientist
 email: antonin.durieux@gmail.com
 description: >- # this means to ignore newlines until "baseurl:"
   Write an awesome description for your new site here. You can edit this
@@ -26,8 +26,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   Google search results) and in your feed.xml site description.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://antonindurieux.github.io/" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: jekyllrb
-github_username:  jekyll
+github_username:  antonindurieux
 
 # Build settings
 remote_theme: "mmistakes/minimal-mistakes@4.22.0"
@@ -38,37 +37,31 @@ plugins:
 
 author:
   name     : "Antonin Durieux"
-  # avatar   : "/assets/images/bio-photo.jpg"
-  bio      : "My awesome biography constrained to a sentence or two goes here."
+  avatar   : "/assets/images/bio-photo.jpg"
+  bio      : "Data Scientist"
   location : "Paris, France"
   links:
-    - label: "Made Mistakes"
-      icon: "fas fa-fw fa-link"
-      url: "https://mademistakes.com"
-    - label: "Twitter"
-      icon: "fab fa-fw fa-twitter-square"
-      url: "https://twitter.com/mmistakes"
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/antonin-durieux/"
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/mmistakes"
-    - label: "Instagram"
-      icon: "fab fa-fw fa-instagram"
-      url: "https://instagram.com/mmistakes"
+      url: "https://github.com/antonindurieux"
+    - label: "Mail"
+      icon: "fas fa-fw fa-envelope-square"
+      url: "mailto:antonin.durieux@gmail.com"
 
-defaults:
-  # _posts
-  - scope:
-      path: ""
-      type: home
-    values:
-      layout: home
-      author_profile: true
-      read_time: false
-      comments: false
-      share: true
-      related: true
-
-
+footer:
+  links:
+    - label: "LinkedIn"
+      icon: "fab fa-fw fa-linkedin"
+      url: "https://www.linkedin.com/in/antonin-durieux/"
+    - label: "GitHub"
+      icon: "fab fa-fw fa-github"
+      url: "https://github.com/antonindurieux"
+    - label: "Mail"
+      icon: "fas fa-fw fa-envelope-square"
+      url: "mailto:antonin.durieux@gmail.com"
 
 # Exclude from processing.
 # The following items will not be processed, by default.
