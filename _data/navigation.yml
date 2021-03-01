@@ -1,7 +1,9 @@
 main:
-  - title: "About me"
+  - title: "Home"
     url: /
   - title: "Professional experience"
     url: /professional-experience/
   - title: "Portfolio"
     url: /portfolio/
+  - title: "CV"
+    url: /assets/files/Antonin_Durieux_resume.pdf
