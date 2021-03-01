@@ -8,11 +8,13 @@ author_profile: true
 
 # About me
 
-## Title 1
-bla bla bla
+Hi, my name is Antonin. I am a Data Scientist enthusiast with a prior background in geosciences. I just finished a [Post Master's Degree in Big Data at Télécom Paris](https://www.telecom-paris.fr/fr/masteres-specialises/tous-les-ms/big-data) and I am currently looking for a new professionnal opportunity that would allow me to apply all my skills to transform
+data into insights in an industrial context.
 
-## Title 2
-blabla bla
+My initial education was in geosciences and I started my career as a [geophysicist](https://en.wikipedia.org/wiki/Geophysics), first at [Géolithe](https://www.geolithe.fr/), then at [CGG](https://www.cgg.com). These experiences allowed me to work for a variety of clients from the oil & gas, mining, geothermal and natural risks industries. I had the fantastic opportunity to travel the world and work with great people from various culture, whether it be in Asia, Africa, Oceania or closer to home in Europe. My work consisted in supervising geophysical data acquisition campaign and mainly on data analysis and processing which was my favorite part of the job!
 
-Test
-**test**
+I then decided to attend a Post Master's Degree in Big Data because I was attracted by statistical analysis and Machine Learning techniques. I wanted to expend my domain of expertise and be able to process a wider type of data to extract value from it. I also thought it would be a good opportunity to have a deeper knowledge on different mathematical topics, as well as to reinforce my skills in programming.
+
+I completed my Post Master's graduate internship at [Tictactrip](https://www.tictactrip.eu/), a booking platform for direct or multimodal trips in Europe. There I handled all the data-related topics of the start-up during my stay, be it by developing transport companies data integration APIs, analysing data to build a price data cache, or building data-visualization dashboards.
+
+You can find my resume [here](assets/files/Antonin_Durieux_resume.pdf), as well as some examples of my work [here](/portfolio/). Also feel free to [reach out to me](mailto:antonin.durieux@gmail.com) on any topic or questions you could have!
