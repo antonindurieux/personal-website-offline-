@@ -1,8 +1,6 @@
 main:
   - title: "Home"
     url: /
-  - title: "Professional experience"
-    url: /professional-experience/
   - title: "Portfolio"
     url: /portfolio/
   - title: "CV"
