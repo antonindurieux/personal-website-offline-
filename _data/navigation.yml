@@ -1,0 +1,7 @@
+main:
+  - title: "About me"
+    url: /
+  - title: "Professional experience"
+    url: /professional-experience/
+  - title: "Portfolio"
+    url: /portfolio/
