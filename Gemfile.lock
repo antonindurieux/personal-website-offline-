@@ -264,6 +264,7 @@ DEPENDENCIES
   github-pages
   jekyll-data
   jekyll-include-cache
+  jekyll-titles-from-headings
 
 BUNDLED WITH
    2.2.11
