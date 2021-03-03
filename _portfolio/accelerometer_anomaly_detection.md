@@ -98,7 +98,7 @@ plt.show()
 ![img1](/assets/images/anomaly_detection_img1.png)
 (The acceleration unit was not specified, it could be m/s<sup>2</sup>, Gal, g, or raw volts).
 
-# Statistical features extraction
+# 3. Statistical features extraction
 
 I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/) Python package to automatically calculates a large number of time series characteristics on each recording. 
 
@@ -169,9 +169,9 @@ for i, col in enumerate(xtrain_feats_df.columns):
 
 We see that some parts of the feature distributions are filled only by the test set. This was promising: these differences could be explained by abnormal series.
 
-By applying a one-class SVM only on those 3 features, the AUC score was already equal to 0.836. 
+By applying a one-class SVM only on those 3 features, the AUC score was already equal to **0.836**. 
 
-# Extraction of frequency information
+# 4. Extraction of frequency information
 
 The next step consisted in calculating periodograms of the signals to see if some interesting frequency information could be added.
 
@@ -284,6 +284,7 @@ xtest_feats_df['f_p05'] = test_f_p05
 We can plot the repartition of those 2 new features as histograms and a scatterplot :
 
 ```python
+# Distributions of frequencies
 plt.figure(figsize=(20,8))
 
 for i, col in enumerate(xtrain_feats_df.columns[-2:]): 
@@ -299,10 +300,136 @@ for i, col in enumerate(xtrain_feats_df.columns[-2:]):
 
 ![img4](/assets/images/anomaly_detection_img4.png)
 
-# Anomaly scores calculation
+```python
+plt.figure(figsize=(8,8))
+plt.scatter(xtrain_feats_df['f_p025'], xtrain_feats_df['f_p05'], label='Train', alpha=0.5)
+plt.scatter(xtest_feats_df['f_p025'], xtest_feats_df['f_p05'], label='Test', alpha=0.5)
+plt.xlabel('25th percentile frequency')
+plt.ylabel('50th percentile frequency')
+plt.legend()
+plt.show()
+```
 
-WIP
+![img5](/assets/images/anomaly_detection_img5.png)
 
-# Conclusion
+We see that some test observations cover areas without train observations.
 
+By using these 2 new features, the AUC score goes from 0.836 to **0.889**, so it's a nice improvement.
+
+# 5. Anomaly scores calculation
+
+There was no specific information about the "quality" of the train and test set. I took the assumption that the train set was constituted of normal exemples. Thus, it would be possible to train an anomaly or novelty detection algorithm by fitting it with the train data. When applied to the test set, **this algorithm would affect a high score to samples that spread too far from the training distribution**.
+
+I tried different anomaly detection algorithms : [isolation forest, local outlier and one-class SVM](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest), and score aggregations between them. The one-class SVM alone gave the best results.
+
+## 5.1 Data normalization
+
+First, I scaled each feature to the same range so that anomaly detection algorithms could work properly:
+
+```python
+feats = ['ts__mean', 'ts__standard_deviation', 'ts__median', 'f_p025', 'f_p05']
+
+scaler = MinMaxScaler()
+
+xtrain_feats_scaled = pd.DataFrame(scaler.fit_transform(xtrain_feats_df), columns=feats)
+xtest_feats_scaled = pd.DataFrame(scaler.transform(xtest_feats_df), columns=feats)
+```
+
+## 5.2 One-class SVM training
+As we didn't know the quality and "purity" of the train set, I trained the one-class SVM in 2 steps :
+- A first step to fit it on the whole train set and get anomaly scores on the training exemples;
+- To be sure that the final one-class SVM was not trained on unintended abnormal exemples, I put aside a few training exemples with slightly high scores and trained the one-class SVM again (this turned to marginally improve the AUC score).
+
+```python
+# One-class SVM fit on all training exemples
+svm = OneClassSVM(kernel='rbf',
+                  gamma='scale',
+                  tol=0.1, 
+                  nu=0.05, 
+                  shrinking=True,
+                  cache_size=200, 
+                  verbose=False, 
+                  max_iter=-1)
+
+svm.fit(xtrain_feats_scaled)
+svm_train_scores = -svm.score_samples(xtrain_feats_scaled)
+```
+
+![img6](/assets/images/anomaly_detection_img6.png)
+
+```python
+# Removing the slightly high score training exemples 
+best_train = np.where(svm_train_scores<-11.5)[0] 
+```
+
+Notice that the hyperparameters of the one-class SVM can be tuned but a cross-validation is not possible here due to the unsupervised nature of the problem. The only feedback was the AUC score obtain after submission (I could improve my score by approximately 1% thanks to hyperparameter tuning).
+
+```python
+# One-class SVM re-training and test set score computation 
+svm2 = OneClassSVM(kernel='rbf',
+                  gamma='scale',
+                  tol=0.07, 
+                  nu=0.002, 
+                  shrinking=True,
+                  cache_size=200, 
+                  verbose=False, 
+                  max_iter=-1)
+
+svm2.fit(xtrain_feats_scaled.iloc[best_train])
+svm_test_scores = -svm2.score_samples(xtest_feats_scaled)
+```
+```python
+plt.figure(figsize=(8,5))
+plt.hist(svm_test_scores, bins=50)
+plt.title("Repartition of the test set anomaly scores")
+plt.xlabel("Scores")
+plt.show()
+```
+![img7](/assets/images/anomaly_detection_img7.png)
+
+The score distribution has 3 modes. Approximately 250 observations got the maximal score of 0.
+
+We can then plot the series getting the highest scores to check if it seemed to work properly:
+
+```python
+top_scores = np.argsort(svm_test_scores)[-50:]
+
+plt.figure(figsize=(18, 18))
+
+for i, index in enumerate(top_scores): 
+    plt.subplot(10, 5, i+1)
+    plt.plot(time_vect, xtest[index])
+    plt.title(index)
+
+plt.tight_layout()
+plt.show()
+```
+![img8](/assets/images/anomaly_detection_img8.png)
+
+The algorithm affected high anomaly scores to flat, saturated, unstable, dissymmetric and negative-mean time-series.  
+
+My final AUC score was **0.896**.
+
+# 6. Other approaches and kernel-PCA
+
+I tried various other approaches which gave very different results:
+- Auto-encoder or variational auto-encoder on raw time-series or power spectrums;
+- PCA on time-series or power spectrums, combined with anomaly detection algorithms or by reconstruction error, and various experimentations on components selection;
+- Same experimentations as for the PCA but with kernel-PCA.
+
+From all these attempts, the kernel-PCA applied on the power spectrums seemed very interesting although I didn't manage to get my highest scores from it. 
+
+Without getting deep into its implementation, just look at the repartition of the test scores on the 3 first components of the kernel-PCA. The color scale is corresponding to the scores affected thanks to my first method:
+
+![img9](/assets/images/anomaly_detection_img9.png)
+
+What is interesting is that the low anomaly scores are concentrated into a small area while high scores are scattered around. So with 2 very different methods, we tend to detect similar anomalies. 
+
+An advantage of using the kernel-PCA would be that it require less feature engineering (I just computed the power spectrums of the series). On the other hand, it seems difficult to tune its parameters properly. By combining kernel-PCA and a local outlier factor, I only managed to achieve an AUC score around O.80. 
+
+# 7. Conclusion
+
+
+
+Faire un tableau des scores
 WIP
