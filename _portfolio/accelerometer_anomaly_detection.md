@@ -2,12 +2,12 @@
 title: "Unsupervised anomaly detection on accelerometer data"
 excerpt: "My solution to an unsupervised anomaly detection data challenge, on accelerometer time-series measurements acquired during helicopter flights."
 header:
-  image: /assets/images/helicopter.jpg
+  overlay_image: /assets/images/helicopter.jpg
+  show_overlay_excerpt: false
+  caption: <span>Photo by <a href="https://unsplash.com/@spacedezert?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">SPACEDEZERT</a> on <a href="https://unsplash.com/s/photos/helicopters?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
   teaser: assets/images/helicopter.jpg
 classes: wide
 ---
-<span>Photo by <a href="https://unsplash.com/@spacedezert?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">SPACEDEZERT</a> on <a href="https://unsplash.com/s/photos/helicopters?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
-
 I will present here my solution for an unsupervised anomaly detection task on accelerometer data that were acquired during helicopter flights.
 
 This exercice was presented as a data challenge competition during my Post Master in Big Data at Télécom Paris. I was very motivated for this challenge since anomaly detection is one of the machine learning applications that I find the most interesting. I ranked 2nd out of 51 participants.
@@ -15,7 +15,7 @@ This exercice was presented as a data challenge competition during my Post Maste
 You can find the full python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection/blob/master/Data_challenge-Detection_anomalies_non_supervisee.ipynb) (in french).
 
 # 1. Introduction
-## 1.1 Data and task
+## 1.1 DTask and data
 
 The data for this challenge was provided by Airbus. They consisted of  time-series of accelerometer data, that were acquired during helicopter flights. Each observation was a 1 minute recording, sampled at 1024 Hz (which thus makes 61440 samples by records).  
 
