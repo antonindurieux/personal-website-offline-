@@ -429,7 +429,13 @@ An advantage of using the kernel-PCA would be that it require less feature engin
 
 # 7. Conclusion
 
-
-
-Faire un tableau des scores
-WIP
+| Method                       | AUC score |
+|------------------------------|-----------|
+| Statistical features only    | 0.836     |
+| Adding frequency information | 0.889     |
+| Tweaking the one-class SVM   | 0.896     |  
+  
+This challenge was exciting as there was a lot of different solutions to explore. Working on it, some interesting points that I will remember are:
+- Sometimes, less is more. Selecting only the relevant statistical features was crucial to avoid adding harmful noise in the data;
+- It is worth extracting different types of information from the data if possible (statistical and frequency information in this case);
+- Totally different approaches can lead to similarities in the results. I think it's one of the reasons why data science is so exciting: there are usually many conceivable ways to solve a task, it triggers your creativity and makes you want to explore.
