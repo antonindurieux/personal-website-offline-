@@ -12,10 +12,10 @@ I will present here my solution for an unsupervised anomaly detection task on ac
 
 This exercice was presented as a data challenge competition during my Post Master in Big Data at Télécom Paris. I was very motivated for this challenge since anomaly detection is one of the machine learning applications that I find the most interesting. I ranked 2nd out of 51 participants.
 
-You can find the full python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection/blob/master/Data_challenge-Detection_anomalies_non_supervisee.ipynb) (in french).
+You can find the corresponding python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection/blob/master/Data_challenge-Detection_anomalies_non_supervisee.ipynb) (in french).
 
-# 1. Introduction
-## 1.1 Task and data
+## 1. Introduction
+### 1.1 Task and data
 
 The data for this challenge was provided by Airbus. They consisted of  time-series of accelerometer data, that were acquired during helicopter flights. Each observation was a 1 minute recording, sampled at 1024 Hz (which thus makes 61440 samples by records).  
 
@@ -27,11 +27,11 @@ One of the main challenge was that **no hints or indication was given about what
 
 Another challenge was that as it was an unsupervised task, the only available performance feedback was the score calculated by the submission website.
 
-## 1.2 My approach
+### 1.2 My approach
 As I was very interested in this task, I took the time to try various approaches to see what looked promising. The method which gave me the best submission score consisted in extracting statistical features from the time-series, and add some frequency-domain information from their periodograms. I then used the [one-class SVM](https://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html) algorithm which can be used to detect anomalies or novelties.
 
 
-### Python imports
+#### Python imports
 ```python
 import pandas as pd
 import numpy as np
@@ -50,7 +50,7 @@ from sklearn.neighbors import LocalOutlierFactor
 sns.set()
 ```
 
-# 2. Data import
+## 2. Data import
 As the dataset could take some time to be loaded from their raw csv format, I previously converted them as [npy](https://numpy.org/doc/stable/reference/generated/numpy.save.html) for faster loading.
 ```python
 xtrain = np.empty((1677,61440))
@@ -98,7 +98,7 @@ plt.show()
 ![img1](/assets/images/anomaly_detection_img1.png)
 (The acceleration unit was not specified, it could be m/s<sup>2</sup>, Gal, g, or raw volts).
 
-# 3. Statistical features extraction
+## 3. Statistical features extraction
 
 I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/) Python package to automatically calculates a large number of time series characteristics on each recording. 
 
@@ -171,7 +171,7 @@ We see that some parts of the feature distributions are filled only by the test 
 
 By applying a one-class SVM only on those 3 features, the AUC score was already equal to **0.836**. 
 
-# 4. Extraction of frequency information
+## 4. Extraction of frequency information
 
 The next step consisted in calculating periodograms of the signals to see if some interesting frequency information could be added.
 
@@ -316,13 +316,13 @@ We see that some test observations cover areas without train observations.
 
 By using these 2 new features, the AUC score goes from 0.836 to **0.889**, so it's a nice improvement.
 
-# 5. Anomaly scores calculation
+## 5. Anomaly scores calculation
 
 There was no specific information about the "quality" of the train and test set. I took the assumption that the train set was constituted of normal exemples. Thus, it would be possible to train an anomaly or novelty detection algorithm by fitting it with the train data. When applied to the test set, **this algorithm would affect a high score to samples that spread too far from the training distribution**.
 
 I tried different anomaly detection algorithms : [isolation forest, local outlier and one-class SVM](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest), and score aggregations between them. The one-class SVM alone gave the best results.
 
-## 5.1 Data normalization
+### 5.1 Data normalization
 
 First, I scaled each feature to the same range so that anomaly detection algorithms could work properly:
 
@@ -335,7 +335,7 @@ xtrain_feats_scaled = pd.DataFrame(scaler.fit_transform(xtrain_feats_df), column
 xtest_feats_scaled = pd.DataFrame(scaler.transform(xtest_feats_df), columns=feats)
 ```
 
-## 5.2 One-class SVM training
+### 5.2 One-class SVM training
 As we didn't know the quality and "purity" of the train set, I trained the one-class SVM in 2 steps :
 - A first step to fit it on the whole train set and get anomaly scores on the training exemples;
 - To be sure that the final one-class SVM was not trained on unintended abnormal exemples, I put aside a few training exemples with slightly high scores and trained the one-class SVM again (this turned to marginally improve the AUC score).
@@ -410,7 +410,7 @@ The algorithm affected high anomaly scores to flat, saturated, unstable, dissymm
 
 My final AUC score was **0.896**.
 
-# 6. Other approaches and kernel-PCA
+## 6. Other approaches and kernel-PCA
 
 I tried various other approaches which gave very different results:
 - Auto-encoder or variational auto-encoder on raw time-series or power spectrums;
@@ -427,7 +427,7 @@ What is interesting is that the low anomaly scores are concentrated into a small
 
 An advantage of using the kernel-PCA would be that it require less feature engineering (I just computed the power spectrums of the series). On the other hand, it seems difficult to tune its parameters properly. By combining kernel-PCA and a local outlier factor, I only managed to achieve an AUC score around O.80. 
 
-# 7. Conclusion
+## 7. Conclusion
 
 | Method                       | AUC score |
 |------------------------------|-----------|
@@ -435,7 +435,7 @@ An advantage of using the kernel-PCA would be that it require less feature engin
 | Adding frequency information | 0.889     |
 | Tweaking the one-class SVM   | 0.896     |  
   
-This challenge was exciting as there was a lot of different solutions to explore. Working on it, some interesting points that I will remember are:
+This challenge was exciting as there were a lot of different solutions to explore. Working on it, some interesting points that I will remember are:
 - Sometimes, less is more. Selecting only the relevant statistical features was crucial to avoid adding harmful noise in the data;
 - It is worth extracting different types of information from the data if possible (statistical and frequency information in this case);
 - Totally different approaches can lead to similarities in the results. I think it's one of the reasons why data science is so exciting: there are usually many conceivable ways to solve a task, it triggers your creativity and makes you want to explore.
