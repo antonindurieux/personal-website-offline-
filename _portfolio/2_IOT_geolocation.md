@@ -9,6 +9,10 @@ header:
 classes: wide
 ---
 
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
 The topic of this article will be to present a solution to geolocate IOT asset trackers thanks to a Machine Learning algorithm.
 
 This project was a group work done during my Post Master in Big Data at Télécom Paris. 
@@ -184,8 +188,8 @@ Base stations located in the Nunavut - training set :
 [ 1092  1594  1661  1743  1772  1796  1854  2293  2707  2943  4123  4129
   4156  4959  4987  4993  7248  8355  8449  8451  8560  9784 10151 10162
  10999 11007 11951]
- ```
- ```python
+```
+```python
 print("Base stations located in the Nunavut - test set : ")
 print(np.unique(df_mess_test[df_mess_test.bs_lng > -70]['bsid']))
 ```
@@ -205,7 +209,32 @@ The stations located around 106°W / 44°N are also suspicious.
 We will see later if we should keep the data from the wrongly located stations or if we should handle them in any specific way.
 
 ## 4. Computation of the feature matrix
-The idea of our algorithm will be to compute a feature matrix $${X}$$ where:
-- each row corresponds to a message;
-- each column corresponds to a base station;
-- aaaaaa
+The idea of our algorithm will be to compute a feature matrix $$X$$ where:
+- each row $$i$$ corresponds to a message;
+- each column $$j$$ corresponds to a base station;
+- $$X_{ij} = RSSI_{ij}$$ if the message $$i$$ has been received by the base station $$j$$, $$X_{ij} = 0$$ otherwise.
+
+We will subsequently use this feature matrix to feed a k-nearest neighbors regressor algorithm. The RSSI values will act as weights, the algorithm will regress the latitude and longitude from them. The location of a test device will thus be predicted based on the training messages received by common stations.
+
+From this choice of feature matrix, we consider that we can keep the wrongly located stations in our training set. Indeed, our solution is independent of the coordinates of the base stations. What matters is that the training devices are correctly located, and that we don't have abnormal RSSI values.
+
+```python
+sns.set()
+
+plt.figure(figsize=(16, 5))
+ax1 = plt.subplot(1,2,1)
+ax2 = plt.subplot(1,2,2)
+
+df_mess_train.hist(column='rssi', bins=50, ax=ax1, density=1)
+ax1.set_title("RSSI - Training data")
+ax1.set_xlabel("RSSI")
+ax1.set_ylabel("Densité")
+
+df_mess_test.hist(column='rssi', bins=50, ax=ax2, density=1, color='orange')
+ax2.set_title("RSSI - Test data")
+ax2.set_xlabel("RSSI")
+ax2.set_ylabel("Densité")
+
+plt.show()
+```
+![img3](/assets/images/iot_img3.png)
