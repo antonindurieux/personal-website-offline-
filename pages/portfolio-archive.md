@@ -10,8 +10,7 @@ author_profile: true
 You will find here some projects that I especially liked to work on.
 This page is a **work in progress**, I will update it with new projects related to machine learning, data mining and data-visualization.
 
-**My favorite tools :**
-
+My favorite tools are : 
 <a href="https://www.python.org/" target="_blank" rel="noopener noreferrer">
 <img src="https://upload.wikimedia.org/wikipedia/commons/c/c3/Python-logo-notext.svg" style="height:50px;"/></a>
 <a href="https://scikit-learn.org/stable/" target="_blank" rel="noopener noreferrer">
@@ -24,3 +23,5 @@ This page is a **work in progress**, I will update it with new projects related 
 <img src="https://wiki.postgresql.org/images/a/a4/PostgreSQL_logo.3colors.svg" style="height:50px;"></a>
 <a href="https://www.metabase.com/" target="_blank" rel="noopener noreferrer">
 <img src="/assets/images/metabase-icon.svg" style="height:50px;"></a>
+<a href="https://git-scm.com/" target="_blank" rel="noopener noreferrer">
+<img src="https://upload.wikimedia.org/wikipedia/commons/3/3f/Git_icon.svg" style="height:50px;"></a>
