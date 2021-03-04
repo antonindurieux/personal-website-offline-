@@ -377,7 +377,7 @@ def vincenty_vec(vec_coord):
         vin_vec_dist = [vincenty(vec_coord[m,0:2],vec_coord[m,2:]).meters for m in range(vec_coord.shape[0])]
     return vin_vec_dist
 ```
-
+ WIP
 
 ```python
 # We remove the device id from the feature matrix

@@ -43,7 +43,7 @@ titles_from_headings:
 
 author:
   name     : "Antonin Durieux"
-  avatar   : "/assets/images/bio-photo.jpg"
+  avatar   : "/assets/images/profile-pic.png"
   bio      : "*Data Scientist*"
   location : "Paris, France"
   linkedin : "antonin-durieux"
