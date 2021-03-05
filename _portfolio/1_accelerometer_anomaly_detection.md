@@ -10,7 +10,7 @@ classes: wide
 ---
 I will present here my solution for an unsupervised anomaly detection task on accelerometer data that were acquired during helicopter flights.
 
-This exercice was presented as a data challenge competition during my Post Master in Big Data at Télécom Paris. I was very motivated for this challenge since anomaly detection is one of the machine learning applications that I find the most interesting. I ranked 2nd out of 51 participants.
+This exercice was presented as a data challenge competition during my Post Master program in Big Data at Télécom Paris. I was very motivated for this challenge since anomaly detection is one of the machine learning applications that I find the most interesting. I ranked 2nd out of 51 participants.
 
 You can find the corresponding python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection) (in french).
 

@@ -15,7 +15,7 @@ classes: wide
 
 The topic of this article will be to present a solution to geolocate IOT asset trackers thanks to a Machine Learning algorithm.
 
-This project was a group work done during my Post Master in Big Data at Télécom Paris. 
+This project was a group work done during my Post Master program in Big Data at Télécom Paris. 
 
 You can find the corresponding python notebook and the data [here](https://github.com/antonindurieux/IoT_geolocalisation) (in french).
 
@@ -356,30 +356,280 @@ ground_truth.shape
 
 To select the best hyper-parameters of the k-Nearest Neighbors algorithm, we will use a leave-one-device-out cross-validation: every device is put aside one after the other during the successive trainings, to get a prediction on the corresponding never-seen device. The total resulting error will thus be calculated by taking into account each one of the devices. This method eliminate the bias that some may be easier to locate than others.
 
-For the k-Nearest Neighbors, the important hyper-parameter is the number of neighbors taken into account, $$k$$. The optimal $$k$$ setting will be defined thanks to this cross-validation procedure. As the predictions on latitudes and longitudes are separate, we can train a k-Nearest Neighbors for each coordinate.
+For the k-Nearest Neighbors, the important hyper-parameter is the number of neighbors taken into account, $$k$$. The optimal $$k$$ setting will be defined thanks to a grid search combined with this cross-validation procedure. As the predictions on latitudes and longitudes are separate, we can find the optimal $$k_{lat}$$ and $$k_{lng}$$ parameters to train a k-Nearest Neighbors for each coordinate.
 
 ### 5.1 Error evaluation
-To check how good are the results, we will compute the [Vincenty distance](https://en.wikipedia.org/wiki/Vincenty%27s_formulae) between the ground truth and the predicted location, in meters:
+To check how good are the results, we will compute the [Vincenty distance](https://en.wikipedia.org/wiki/Vincenty%27s_formulae) between the ground truth and the predicted device locations, in meters:
 ```python
-def vincenty_vec(vec_coord):
+def Eval_geoloc(y_train_lat, y_train_lng, y_pred_lat, y_pred_lng):
     """
-    Computation of the Vincenty distances between pairs of points
+    Computation of the Vincenty distance between pairs of points
     Input: 
-        vec_coord - array of coordinates with column [y_lat , y_lng, y_pred_lat, y_pred_lng]
+        y_train_lat - array of ground truth latitudes
+        y_train_lng - array of ground truth longitudes
+        y_pred_lat - array of predicted latitudes
+        y_pred_lng - array of predicted longitudes
     Output:
-        vin_vec_dist - array of Vincenty distances in meters
+        err_vec - array of Vincenty distances
     """
     
-    vin_vec_dist = np.zeros(vec_coord.shape[0])
+    vec_coord = np.array([y_train_lat , y_train_lng, y_pred_lat, y_pred_lng])
+    vec_coord = np.transpose(vec_coord)
+    err_vec = np.zeros(vec_coord.shape[0])
+    
     if vec_coord.shape[1] !=  4:
         print('ERROR: Bad number of columns (shall be = 4)')
     else:
-        vin_vec_dist = [vincenty(vec_coord[m,0:2],vec_coord[m,2:]).meters for m in range(vec_coord.shape[0])]
-    return vin_vec_dist
+        err_vec = [vincenty(vec_coord[m,0:2],vec_coord[m,2:]).meters for m in range(vec_coord.shape[0])]
+    
+    return err_vec
 ```
- WIP
+
+The performance criterion will be **the error distance at the 80<sup>th</sup> percentile**.
+
+### 5.2 Grid search for $$k_{lat}$$ and $$k_{lng}$$
+
+Now we can launch the grid search for the best number of neighbors on the latitude and longitude dimensions:
 
 ```python
 # We remove the device id from the feature matrix
 features = df_feat.columns.values[:-1]
 ```
+
+```python
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+
+# Grouping by device id for the leave-one-device-out cross-validation
+groups = df_feat.did.values
+logo = LeaveOneGroupOut()
+
+# Leave-one-device-out cross-validation
+err_perc80_matrix = np.empty((0,3))
+
+# k_lat loop 
+for k_lat in range(4,12):
+    # k_lng loop
+    for k_lng in range(4,12):
+        reg_lat = KNeighborsRegressor(p=1,
+                              n_neighbors=k_lat,
+                              weights = 'distance',
+                              algorithm = 'brute')
+    
+        reg_lng = KNeighborsRegressor(p=1,
+                              n_neighbors=k_lng,
+                              weights = 'distance',
+                              algorithm = 'brute')
+
+        y_pred_lat = cross_val_predict(reg_lat, df_feat[features], ground_truth_lat, cv=logo, groups=groups, n_jobs=-1)
+        y_pred_lng = cross_val_predict(reg_lng, df_feat[features], ground_truth_lng, cv=logo, groups=groups, n_jobs=-1)
+
+        # Error vector
+        err_vec = Eval_geoloc(ground_truth_lat, ground_truth_lng, y_pred_lat, y_pred_lng)
+        # 80th percentile error
+        err_80 = np.percentile(err_vec, 80)
+
+        comb_error = np.array([k_lat, k_lng, err_80])
+        err_perc80_matrix = np.vstack((err_perc80_matrix, comb_error))
+        
+        #print("k_lat : {}, k_lng : {}, error percentile 80 : {}".format(k_lat, k_lng, err_80))
+```
+```python
+ks_lat = err_perc80_matrix[:,0]
+ks_lng = err_perc80_matrix[:,1]
+error = err_perc80_matrix[:,2]
+
+print("Minimal 80th percentile error : {}, pour k_lat = {} et k_lng = {}".
+      format(min(error), int(ks_lat[np.argmin(error)]), int(ks_lng[np.argmin(error)])))
+```
+```
+Minimal 80th percentile error : 5461.439091895561, pour k_lat = 8 et k_lng = 8
+```
+
+To get a visual representation of the results of this grid-search, we can represent the error as a heatmap:
+```python
+err_heatmap = err_perc80_matrix[:,2].reshape((8, 8))
+
+plt.figure(figsize=(7, 7))
+
+plt.title('80th percentile error (m)')
+plt.imshow(err_heatmap, cmap='magma_r', interpolation='nearest')
+plt.xticks(np.arange(9), np.arange(4, 12))
+plt.yticks(np.arange(9), np.arange(4, 12))
+plt.xlim((-0.5, 7.5))
+plt.ylim((-0.5, 7.5))
+plt.xlabel('$k_{lng}$')
+plt.ylabel('$k_{lat}$')
+
+plt.colorbar()
+
+plt.show()
+```
+
+![img4](/assets/images/iot_img4.png)
+
+It is interesting to see that the latitude regressor is more sensitive to the $$k$$ parameter than the longitude regressor. It could be due to the geographic spread of the devices, that shows a higher variance on the latitude dimension than on the longitude.
+
+### 5.3 Model training
+
+Now we select the best hyper-parameters ($$k_{lat} = 8$$ and $$k_{lng} = 8$$) and check the errors:
+```python
+# Training
+reg = KNeighborsRegressor(p=1,
+                          n_neighbors=8,
+                          weights = 'distance',
+                          algorithm = 'brute')
+
+y_pred_lng = cross_val_predict(reg, df_feat[features], ground_truth_lng, cv=logo, groups=groups, n_jobs=-1)
+y_pred_lat = cross_val_predict(reg, df_feat[features], ground_truth_lat, cv=logo, groups=groups, n_jobs=-1)
+```
+```python
+# Error computation
+err_vec = Eval_geoloc(ground_truth_lat, ground_truth_lng, y_pred_lat, y_pred_lng)
+```
+
+We can check the error distribution:
+```python
+plt.figure(figsize=(9, 6))
+
+plt.hist(err_vec, bins=100)
+plt.yscale('log')
+plt.title('Error distribution (log-scale)')
+plt.xlabel('Error (m)')
+
+plt.show()
+```
+
+![img5](/assets/images/iot_img5.png)
+
+We can see that most of the errors are distributed on the lowest distances. However, a few messages have been located very far from the true position of their device (> 100 km).
+
+The error criterion was the 80th percentile of the cumulative error. Here is its graphical representation:
+
+```python
+# Cumulative error curve
+values, base = np.histogram(err_vec, bins=50000)
+cumulative = np.cumsum(values) 
+
+plt.figure()
+
+plt.plot(base[:-1]/1000, cumulative / np.float(np.sum(values))  * 100.0)
+plt.xlabel('Distance Error (km)')
+plt.ylabel('Cum proba (%)')
+plt.axis([0, 30, 0, 100]) 
+plt.title('Error Cumulative Probability')
+plt.legend( ["Opt LLR", "LLR 95", "LLR 99"])
+
+plt.show()
+```
+
+![img6](/assets/images/iot_img6.png)
+
+```python
+np.percentile(err_vec, 80)
+```
+```
+5461.439091895561
+```
+It means that for 80 % of the messages, the devices have been located at less than 5.461 km from their true position.
+
+## 6. Geolocation predictions
+
+Now we can predict the geolocations of the test set with our model:
+
+```python
+def regressor_and_predict(df_feat, ground_truth_lat, ground_truth_lng, df_test):
+    """
+    Train regressor and make prediction on the test set
+    Input: 
+        df_feat - training feature matrix
+        ground_truth_lat - array of ground truth latitudes
+        ground_truth_lng - array of ground truth longitudes
+        df_test - test feature matrix
+    Output:
+        y_pred_lat - predicted latitudes on the test set
+        y_pred_lng - predicted longitudes on the test set
+    """
+    # 
+    # Input: df_feat, ground_truth_lat, ground_truth_lng, df_test
+    # Output: y_pred_lat, y_pred_lng
+    
+    features = df_feat.columns.values[:-1]
+
+    reg = KNeighborsRegressor(p=1,
+                              n_neighbors=8,
+                              weights = 'distance',
+                              algorithm = 'brute')
+    
+    reg.fit(df_feat[features], ground_truth_lat)
+    y_pred_lat = reg.predict(df_test[features]) 
+    
+    reg.fit(df_feat[features], ground_truth_lng)
+    y_pred_lng = reg.predict(df_test[features]) 
+    
+    return y_pred_lat, y_pred_lng
+```
+
+```python
+# Feature matrix computation for the test set
+df_feat_test, id_list_test = feat_mat_const(df_mess_test, listOfBs)
+```
+
+```python
+# Predictions computation on the test set
+y_pred_lat, y_pred_lng = regressor_and_predict(df_feat, ground_truth_lat, ground_truth_lng, df_feat_test)
+```
+
+```python
+# Predictions output
+test_res = pd.DataFrame(np.array([y_pred_lat, y_pred_lng]).T, columns = ['lat', 'lng'])
+test_res['messid'] = id_list_test
+
+test_res.head()
+```
+
+|    |     lat |      lng | messid                   |
+|---:|--------:|---------:|:-------------------------|
+|  0 | 39.715  | -105.055 | 573be2503e952e191262c351 |
+|  1 | 39.7742 | -105.079 | 573c05f83e952e1912758013 |
+|  2 | 39.6875 | -105.014 | 573c0796f0fe6e735a66deb3 |
+|  3 | 39.8034 | -105.08  | 573c08d2864fce1a9a0563bc |
+|  4 | 39.687  | -105.015 | 573c08ff864fce1a9a0579b0 |
+
+Finally, we can map the computed locations:
+
+```python
+# Background
+fig = plt.figure(figsize=(16, 16))
+m = Basemap(projection='cyl', resolution='l',
+            llcrnrlon=-115, llcrnrlat= 35, 
+            urcrnrlon=-95, urcrnrlat=50)
+m.shadedrelief()
+m.drawcountries(color='gray')
+m.drawstates(color='gray')
+m.drawparallels(np.arange(35,50,5), labels=[1,1,1,1])
+m.drawmeridians(np.arange(-115,-95,5), labels=[1,1,1,1])
+
+# Test base stations
+bs_lat_test, bs_lng_test = m(df_mess_test.bs_lat.values, df_mess_test.bs_lng.values)
+plt.plot(bs_lng_test, bs_lat_test, marker='^', color='m', markersize=4, linestyle="None", label='Test base stations')
+
+# Predicted positions
+device_lat, device_lng = m(pos_train.lat.values, pos_train.lng.values)
+plt.plot(device_lng, device_lat, 'xg', markersize=2, label='Test devices')
+
+plt.legend()
+plt.show()
+```
+
+![img7](/assets/images/iot_img7.png)
+
+We can see that the predicted positions seem globally coherent (the real positions were not provided in the dataset).
+
+## 7. Conclusion
+
+This exercise showed how to solve a geolocation task thanks to machine learning. This method could be useful in contexts where conventional geolocation techniques (such as triangulation) are not possible or practical to apply.
+
+An interesting cross-validation method has been discussed: the **leave-one-device-out** cross-validation. This method is useful to correctly take into account the error on each one of the devices during the cross-validation.
+
+The result seems good to locate a great part of the devices with an error of less than 5 km. The model could possibly be improved by trying other regression algorithms, or by trying to design a different kind of feature matrix (for exemple, the "nseq" data feature has not been used, maybe it could be useful).
