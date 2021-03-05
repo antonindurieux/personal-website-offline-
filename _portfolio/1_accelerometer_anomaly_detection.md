@@ -12,7 +12,7 @@ I will present here my solution for an unsupervised anomaly detection task on ac
 
 This exercice was presented as a data challenge competition during my Post Master program in Big Data at Télécom Paris. I was very motivated for this challenge since anomaly detection is one of the machine learning applications that I find the most interesting. I ranked 2nd out of 51 participants.
 
-You can find the corresponding python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection) (in french).
+You can find the corresponding python notebook [here](https://github.com/antonindurieux/data_challenge-unsupervised_anomaly_detection){:target="_blank"} (in french).
 
 ## 1. Introduction
 ### 1.1 Task and data
@@ -21,14 +21,14 @@ The data for this challenge was provided by Airbus. They consisted of  time-seri
 
 The training set consisted of 1677 of those 1-minute recordings, while de test set consisted of 2511. The task was to affect an anomaly score to each test recording : the higher the score, the more abnormal the recording should be. No label was provided, which made it an **unsupervised** anomaly detection task.
 
-The performance criterion was the [**Area Under the Receiver Operating Characteristic (AUC)**](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve).
+The performance criterion was the [**Area Under the Receiver Operating Characteristic (AUC)**](https://en.wikipedia.org/wiki/Receiver_operating_characteristic#Area_under_the_curve){:target="_blank"}.
 
 One of the main challenge was that **no hints or indication was given about what constitued an "abnormal" time-serie**. Hence, anomalies had to be identified in an automatic way by learning the normal behavior, that of the vast majority of the observations, and considering those differing significantly from it as abnormal. Logically, anomalies are rare in the data and thus fall in low density regions: anomaly detection thus boils down to identifying the tail of the distribution.
 
 Another challenge was that as it was an unsupervised task, the only available performance feedback was the score calculated by the submission website.
 
 ### 1.2 My approach
-As I was very interested in this task, I took the time to try various approaches to see what looked promising. The method which gave me the best submission score consisted in extracting statistical features from the time-series, and add some frequency-domain information from their periodograms. I then used the [one-class SVM](https://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html) algorithm which can be used to detect anomalies or novelties.
+As I was very interested in this task, I took the time to try various approaches to see what looked promising. The method which gave me the best submission score consisted in extracting statistical features from the time-series, and add some frequency-domain information from their periodograms. I then used the [one-class SVM](https://scikit-learn.org/stable/auto_examples/svm/plot_oneclass.html){:target="_blank"} algorithm which can be used to detect anomalies or novelties.
 
 
 #### Python imports
@@ -51,7 +51,7 @@ sns.set()
 ```
 
 ## 2. Data import
-As the dataset could take some time to be loaded from their raw csv format, I previously converted them as [npy](https://numpy.org/doc/stable/reference/generated/numpy.save.html) for faster loading.
+As the dataset could take some time to be loaded from their raw csv format, I previously converted them as [npy](https://numpy.org/doc/stable/reference/generated/numpy.save.html){:target="_blank"} for faster loading.
 ```python
 xtrain = np.empty((1677,61440))
 xtest = np.empty((2511,61440))
@@ -100,9 +100,9 @@ plt.show()
 
 ## 3. Statistical features extraction
 
-I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/) Python package to automatically calculates a large number of time series characteristics on each recording. 
+I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/){:target="_blank"} Python package to automatically calculates a large number of time series characteristics on each recording. 
 
-As I didn't have information on which features could make sense to characterize abnormal series, I chose to extract a large set of them that seemed of possible use. The process of feature calculation taking a lot of time, I [pickled](https://docs.python.org/3/library/pickle.html) the output DataFrames.
+As I didn't have information on which features could make sense to characterize abnormal series, I chose to extract a large set of them that seemed of possible use. The process of feature calculation taking a lot of time, I [pickled](https://docs.python.org/3/library/pickle.html){:target="_blank"} the output DataFrames.
 
 ```python
 file = '/content/drive/My Drive/Data_Challenge_MDI341/Pickles/xtrain_stat_feats_df'
@@ -320,7 +320,7 @@ By using these 2 new features, the AUC score goes from 0.836 to **0.889**, so it
 
 There was no specific information about the "quality" of the train and test set. I took the assumption that the train set was constituted of normal exemples. Thus, it would be possible to train an anomaly or novelty detection algorithm by fitting it with the train data. When applied to the test set, **this algorithm would affect a high score to samples that spread too far from the training distribution**.
 
-I tried different anomaly detection algorithms : [isolation forest, local outlier and one-class SVM](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest), and score aggregations between them. The one-class SVM alone gave the best results.
+I tried different anomaly detection algorithms : [isolation forest, local outlier and one-class SVM](https://scikit-learn.org/stable/modules/outlier_detection.html#isolation-forest){:target="_blank"}, and score aggregations between them. The one-class SVM alone gave the best results.
 
 ### 5.1 Data normalization
 

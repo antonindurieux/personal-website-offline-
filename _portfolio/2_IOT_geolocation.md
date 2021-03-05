@@ -17,11 +17,11 @@ The topic of this article will be to present a solution to geolocate IOT asset t
 
 This project was a group work done during my Post Master program in Big Data at Télécom Paris. 
 
-You can find the corresponding python notebook and the data [here](https://github.com/antonindurieux/IoT_geolocalisation) (in french).
+You can find the corresponding python notebook and the data [here](https://github.com/antonindurieux/IoT_geolocalisation){:target="_blank"} (in french).
 
 ## 1. Introduction
 
-The data for this project was provided by [Sigfox](https://www.sigfox.com/en). They consisted of messages sent by IOT asset trackers and received by the Sigfox base stations network in the USA. The goal was to find a way to compute the geolocation of the trackers thanks to machine learning algorithms.
+The data for this project was provided by [Sigfox](https://www.sigfox.com/en){:target="_blank"}. They consisted of messages sent by IOT asset trackers and received by the Sigfox base stations network in the USA. The goal was to find a way to compute the geolocation of the trackers thanks to machine learning algorithms.
 
 The training set consisted of trackers messages, associated with the position of the trackers at the time of sending. The test set consisted in trackers messages without their position: the task was to compute them. It is important to note that a specific message could have been received by several base stations.
 
@@ -67,7 +67,7 @@ The information contained in each messages are the following:
 - **bsid** is the reception base station id;
 - **did** is the device (tracker) id;
 - **nseq** is a variable whose meaning was not provided, maybe it could be usefull, maybe not...
-- **rssi** is the [received signal strength](https://fr.wikipedia.org/wiki/Received_Signal_Strength_Indication);
+- **rssi** is the [received signal strength](https://fr.wikipedia.org/wiki/Received_Signal_Strength_Indication){:target="_blank"};
 - **time_ux** is the reception time;
 - **bs_lat** and **bs_lng** are the coordinates of the reception base station.
 
@@ -359,7 +359,7 @@ To select the best hyper-parameters of the k-Nearest Neighbors algorithm, we wil
 For the k-Nearest Neighbors, the important hyper-parameter is the number of neighbors taken into account, $$k$$. The optimal $$k$$ setting will be defined thanks to a grid search combined with this cross-validation procedure. As the predictions on latitudes and longitudes are separate, we can find the optimal $$k_{lat}$$ and $$k_{lng}$$ parameters to train a k-Nearest Neighbors for each coordinate.
 
 ### 5.1 Error evaluation
-To check how good are the results, we will compute the [Vincenty distance](https://en.wikipedia.org/wiki/Vincenty%27s_formulae) between the ground truth and the predicted device locations, in meters:
+To check how good are the results, we will compute the [Vincenty distance](https://en.wikipedia.org/wiki/Vincenty%27s_formulae){:target="_blank"} between the ground truth and the predicted device locations, in meters:
 ```python
 def Eval_geoloc(y_train_lat, y_train_lng, y_pred_lat, y_pred_lng):
     """
