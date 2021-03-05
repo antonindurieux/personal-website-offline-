@@ -82,7 +82,7 @@ defaults:
       share: true
 
 analytics:
-  provider: "google-gtag"
+  provider: "google"
   google:
     tracking_id: "G-49TVF27YEE"
     anonymize_ip: false # default
