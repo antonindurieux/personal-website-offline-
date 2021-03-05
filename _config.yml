@@ -81,6 +81,12 @@ defaults:
       author_profile: true
       share: true
 
+analytics:
+  provider: "google-gtag"
+  google:
+    tracking_id: "G-49TVF27YEE"
+    anonymize_ip: false # default
+
 
 
 # Exclude from processing.
