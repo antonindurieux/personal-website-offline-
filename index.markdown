@@ -11,7 +11,7 @@ caption: <span>Photo by <a href="https://unsplash.com/@pawel_czerwinski?utm_sour
 
 # About me
 
-Hi, my name is Antonin. I am a Data Science enthusiast with a prior background in geosciences. I just finished a [Post Master's Degree in Big Data at Télécom Paris](https://www.telecom-paris.fr/fr/masteres-specialises/tous-les-ms/big-data){:target="_blank"} and I am currently looking for a new professionnal opportunity that would allow me to apply my Data Science skills to transform
+Hi, my name is Antonin. I am a Data Science enthusiast with a prior background in geosciences. I just completed a [Post Master's Degree in Big Data at Télécom Paris](https://www.telecom-paris.fr/fr/masteres-specialises/tous-les-ms/big-data){:target="_blank"} and I am currently looking for a new professionnal opportunity that would allow me to apply my Data Science skills to transform
 data into insights.
 
 My initial education was in geosciences and [geophysics](https://en.wikipedia.org/wiki/Geophysics){:target="_blank"}, which allowed me to work for a variety of clients from the oil & gas, mining, geothermal and natural risks industries, all over the world. During these years I was particularly delighted to work on a broad range of data types: [seismic](https://en.wikipedia.org/wiki/Multidimensional_seismic_data_processing){:target="_blank"}, [electrical](https://en.wikipedia.org/wiki/Electrical_resistivity_tomography){:target="_blank"}, [gravimetry](https://en.wikipedia.org/wiki/Gravimetry){:target="_blank"}, [electromagnetic](https://en.wikipedia.org/wiki/Transient_electromagnetics){:target="_blank"} and [magnetotellurics](https://en.wikipedia.org/wiki/Magnetotellurics){:target="_blank"}.
