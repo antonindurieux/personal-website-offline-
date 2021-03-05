@@ -435,7 +435,12 @@ An advantage of using the kernel-PCA would be that it require less feature engin
 | Adding frequency information | 0.889     |
 | Tweaking the one-class SVM   | 0.896     |  
   
-This challenge was exciting as there were a lot of different solutions to explore. Working on it, some interesting points that I will remember are:
-- Sometimes, less is more. Selecting only the relevant statistical features was crucial to avoid adding harmful noise in the data;
-- It is worth extracting different types of information from the data if possible (statistical and frequency information in this case);
-- Totally different approaches can lead to similarities in the results. I think it's one of the reasons why data science is so exciting: there are usually many conceivable ways to solve a task, it triggers your creativity and makes you want to explore.
+This challenge has been a good occasion to review some of the options to solve an anomaly detection task with machine learning. It was equally interesting to work on an **unsupervised** problem.
+
+The proposed solution shows some good results, and is fairly straigthtforward to implement. I also explored alternative methods among which the **kernel-PCA** seemed promising (the drawback being that it might be difficult to tweak it to get better results). 
+
+Some interesting points that I will remember are:
+- Some problems, as this one, could potentially be solved using many very different approaches. It can be worth it to explore the space of solution without prejudice. Simple methods can produce great results.
+- Sometimes, less is more. Selecting only the relevant statistical features was crucial to avoid adding harmful noise in the data.
+- It is worth extracting different types of information from the data if possible (statistical and frequency information in this case).
+
