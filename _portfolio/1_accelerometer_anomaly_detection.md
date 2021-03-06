@@ -100,7 +100,7 @@ plt.show()
 
 ## 3. Statistical features extraction
 
-I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/){:target="_blank"} Python package to automatically calculates a large number of time series characteristics on each recording. 
+I used the [tsfresh](https://tsfresh.readthedocs.io/en/latest/){:target="_blank"} Python package to automatically calculate a large number of time series characteristics on each recording. 
 
 As I didn't have information on which features could make sense to characterize abnormal series, I chose to extract a large set of them that seemed of possible use. The process of feature calculation taking a lot of time, I [pickled](https://docs.python.org/3/library/pickle.html){:target="_blank"} the output DataFrames.
 
@@ -406,7 +406,7 @@ plt.show()
 ```
 ![img8](/assets/images/anomaly_detection_img8.png)
 
-The algorithm affected high anomaly scores to flat, saturated, unstable, dissymmetric and negative-mean time-series.  
+The algorithm gave high anomaly scores to flat, saturated, unstable, dissymmetric and negative-mean time-series.  
 
 My final AUC score was **0.896**.
 
@@ -419,13 +419,13 @@ I tried various other approaches which gave very different results:
 
 From all these attempts, the kernel-PCA applied on the power spectrums seemed very interesting although I didn't manage to get my highest scores from it. 
 
-Without getting deep into its implementation, just look at the repartition of the test scores on the 3 first components of the kernel-PCA. The color scale is corresponding to the scores affected thanks to my first method:
+Without getting deep into its implementation, just look at the repartition of the test scores on the 3 first components of the kernel-PCA. The color scale is corresponding to the scores affected thanks to my first methodolgy (one-class SVM on statistical and frequency features):
 
 ![img9](/assets/images/anomaly_detection_img9.png)
 
 What is interesting is that the low anomaly scores are concentrated into a small area while high scores are scattered around. So with 2 very different methods, we tend to detect similar anomalies. 
 
-An advantage of using the kernel-PCA would be that it require less feature engineering (I just computed the power spectrums of the series). On the other hand, it seems difficult to tune its parameters properly. By combining kernel-PCA and a local outlier factor, I only managed to achieve an AUC score around O.80. 
+An advantage of using the kernel-PCA would be that it require less feature engineering (it is applied to the raw power spectrums of the series). On the other hand, it seems difficult to tune its parameters properly. By combining kernel-PCA and a local outlier factor, I only managed to achieve an AUC score around 0.80. 
 
 ## 7. Conclusion
 

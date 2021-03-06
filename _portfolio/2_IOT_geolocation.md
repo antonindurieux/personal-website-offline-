@@ -216,7 +216,7 @@ The idea of our algorithm will be to compute a feature matrix $$X$$ where:
 
 We will subsequently use this feature matrix to feed a k-nearest neighbors regressor algorithm. This algorithm will allow to interpolate locations based on the positionning of the neighboring devices, taking the RSSI values as weights.
 
-From this choice of feature matrix, we consider that we can keep the wrongly located stations in our training set. Indeed, our solution is independent of the coordinates of the base stations. What matters is that the training devices are correctly located, and that we don't have abnormal RSSI values.
+From this choice of feature matrix, we consider that we can keep the wrongly located stations in our training set. Indeed, our solution is independent of the coordinates of the base stations. What matters is that the training devices are correctly located, and that RSSI values are correct.
 
 ```python
 sns.set()
@@ -356,7 +356,7 @@ ground_truth.shape
 
 To select the best hyper-parameters of the k-Nearest Neighbors algorithm, we will use a leave-one-device-out cross-validation: every device is put aside one after the other during the successive trainings, to get a prediction on the corresponding never-seen device. The total resulting error will thus be calculated by taking into account each one of the devices. This method eliminate the bias that some may be easier to locate than others.
 
-For the k-Nearest Neighbors, the important hyper-parameter is the number of neighbors taken into account, $$k$$. The optimal $$k$$ setting will be defined thanks to a grid search combined with this cross-validation procedure. As the predictions on latitudes and longitudes are separate, we can find the optimal $$k_{lat}$$ and $$k_{lng}$$ parameters to train a k-Nearest Neighbors for each coordinate.
+For the k-Nearest Neighbors, the important hyper-parameter is the number of neighbors taken into account, $$k$$. The optimal $$k$$ setting will be defined thanks to a grid search combined with this cross-validation procedure. As the predictions on latitudes and longitudes will be separate, we can find the optimal $$k_{lat}$$ and $$k_{lng}$$ parameters to train a k-Nearest Neighbors for each coordinate.
 
 ### 5.1 Error evaluation
 To check how good are the results, we will compute the [Vincenty distance](https://en.wikipedia.org/wiki/Vincenty%27s_formulae){:target="_blank"} between the ground truth and the predicted device locations, in meters:
@@ -439,11 +439,11 @@ ks_lat = err_perc80_matrix[:,0]
 ks_lng = err_perc80_matrix[:,1]
 error = err_perc80_matrix[:,2]
 
-print("Minimal 80th percentile error : {}, pour k_lat = {} et k_lng = {}".
+print("Minimal 80th percentile error : {}, for k_lat = {} and k_lng = {}".
       format(min(error), int(ks_lat[np.argmin(error)]), int(ks_lng[np.argmin(error)])))
 ```
 ```
-Minimal 80th percentile error : 5461.439091895561, pour k_lat = 8 et k_lng = 8
+Minimal 80th percentile error : 5461.439091895561, for k_lat = 8 and k_lng = 8
 ```
 
 To get a visual representation of the results of this grid-search, we can represent the error as a heatmap:
@@ -628,7 +628,7 @@ We can see that the predicted positions seem globally coherent (the real positio
 
 ## 7. Conclusion
 
-This exercise showed how to solve a geolocation task thanks to machine learning. This method could be useful in contexts where conventional geolocation techniques (such as triangulation) are not possible or practical to apply.
+This exercise showed how to solve a geolocation task thanks to machine learning. This could be useful in contexts where conventional geolocation techniques (such as triangulation) are not possible or practical to apply.
 
 An interesting cross-validation method has been discussed: the **leave-one-device-out** cross-validation. This method is useful to correctly take into account the error on each one of the devices during the cross-validation.
 
