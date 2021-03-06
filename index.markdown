@@ -18,6 +18,6 @@ My initial education was in geosciences and [geophysics](https://en.wikipedia.or
 
 I then decided to attend a Post Master's Degree in Big Data. I wanted to have a stronger knowledge on statistical analysis and Machine Learning techniques. I also desired to expend my domain of expertise and be able to process a wider type of data to extract value from it. Moreover, it was a good opportunity to have a deeper knowledge on different mathematical topics, and to reinforce my programming skills.
 
-I completed my Post Master's graduate internship at [Tictactrip](https://www.tictactrip.eu/){:target="_blank"}, a booking platform for direct or multimodal trips in Europe. There I handled all the data-related topics of the start-up during my stay, be it by developing transport companies data integration APIs, analysing data to design a ticket cache system, or building data-visualization dashboards.
+I completed my Post Master's graduate internship at [Tictactrip](https://www.tictactrip.eu/){:target="_blank"}, a booking platform for direct or multimodal trips in Europe. There I handled all the data-related topics of the start-up during my stay, be it by developing APIs to integrate transport companies' data, analysing data to design a ticket cache system, or building data-visualization dashboards.
 
 You can find my resume [here](assets/files/Antonin_Durieux_resume.pdf), as well as some examples of the kind of work I love to do [here](/portfolio/). Also feel free to [reach out to me](mailto:antonin.durieux@gmail.com) on any topic or questions you could have!
