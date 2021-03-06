@@ -7,7 +7,7 @@ entries_layout: grid
 classes: wide
 author_profile: true
 ---
-You will find here some projects that especially I loved to work on.
+You will find here some projects that I especially loved to work on.
 This page is a **work in progress**, I will update it with new projects related to machine learning, data mining and data-visualization.
 
 Some of my favorite tools are :  

@@ -3,7 +3,7 @@ title: "Unsupervised anomaly detection on accelerometer data"
 excerpt: "My solution to an unsupervised anomaly detection data challenge, on accelerometer time-series measurements acquired during helicopter flights."
 header:
   overlay_image: /assets/images/helicopter.jpg
-  show_overlay_excerpt: false
+  show_overlay_excerpt: true
   caption: <span>Photo by <a href="https://unsplash.com/@spacedezert?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">SPACEDEZERT</a> on <a href="https://unsplash.com/s/photos/helicopters?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
   teaser: assets/images/helicopter.jpg
 classes: wide

@@ -3,7 +3,7 @@ title: "IOT trackers geolocation"
 excerpt: "Development of a machine learning solution to geolocate IOT asset trackers."
 header:
   overlay_image: /assets/images/map.jpg
-  show_overlay_excerpt: false
+  show_overlay_excerpt: true
   caption: <span>Photo by <a href="https://unsplash.com/@timowielink?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Timo Wielink</a> on <a href="https://unsplash.com/s/photos/map?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
   teaser: assets/images/map.jpg
 classes: wide
