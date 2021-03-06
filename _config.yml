@@ -87,9 +87,6 @@ analytics:
     tracking_id: "G-49TVF27YEE"
     anonymize_ip: true
 
-google_site_verification : "google49216cde1cbbc49c.html"
-
-
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to
