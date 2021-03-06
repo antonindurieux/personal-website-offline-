@@ -85,8 +85,9 @@ analytics:
   provider: "google"
   google:
     tracking_id: "G-49TVF27YEE"
-    anonymize_ip: false # default
+    anonymize_ip: true
 
+google_site_verification : "oogle49216cde1cbbc49c"
 
 
 # Exclude from processing.
