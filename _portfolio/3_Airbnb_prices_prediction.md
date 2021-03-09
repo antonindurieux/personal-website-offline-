@@ -469,4 +469,131 @@ property_type_list = ['Apartment', 'Townhouse', 'Boutique hotel', 'Loft',
 listings_df = listings_df.filter(listings_df.property_type.isin(property_type_list))
 ```
 
-Are there the 
+Similarly, are there some kind of weird values for the room and bed types ?
+
+```python
+listings_df.groupBy(["room_type"]).count().show()
+```
+```
++---------------+-----+
+|      room_type|count|
++---------------+-----+
+|    Shared room|  392|
+|     Hotel room| 1336|
+|Entire home/apt|42129|
+|   Private room| 6191|
++---------------+-----+
+```
+
+```python
+listings_df.groupBy(["bed_type"]).count().show()
+```
+```
++-------------+-----+
+|     bed_type|count|
++-------------+-----+
+|       Airbed|   14|
+|        Futon|  153|
+|Pull-out Sofa|  832|
+|        Couch|  181|
+|     Real Bed|48868|
++-------------+-----+
+```
+
+Nothing seems too unrealistic so we won't filter values based on these columns.
+
+### 3.2 Prices ditribution
+
+We will check how the prices are ditributed:
+
+```python
+sns.set(rc={'figure.figsize': (9, 5)})
+
+bins, counts = listings_df.select("price").rdd.flatMap(lambda x: x).histogram(100)
+
+fig, ax = plt.subplots()
+plt.hist(bins[:-1], bins=bins, weights=counts)
+plt.title('Price distribution')
+plt.xlabel('Price (€)')
+plt.show()
+```
+![img1](/assets/images/airbnb_img1.png)
+
+```python
+listings_df.describe(['price']).show()
+```
+```
++-------+------------------+
+|summary|             price|
++-------+------------------+
+|  count|             50048|
+|   mean|127.03037084398977|
+| stddev|174.28140414102353|
+|    min|               8.0|
+|    max|           10000.0|
++-------+------------------+
+```
+
+First, notice in the figure that I made the assumption that the prices are in Euros (even if there was a $ sign next to each amount in the raw dataset). I will later show an evidence which strengthen this assumption.
+
+We can see that the great majority of the prices are distributed toward the low values. I will treat the higher than 500€ prices as outliers and remove them from the data:
+
+```python
+listings_df = listings_df.filter(listings_df.price < 500)
+```
+
+```python
+bins, counts = listings_df.select("price").rdd.flatMap(lambda x: x).histogram(100)
+
+fig, ax = plt.subplots()
+plt.hist(bins[:-1], bins=bins, weights=counts)
+plt.title('Price distribution')
+plt.xlabel('Price (€)')
+plt.show()
+```
+![img2](/assets/images/airbnb_img2.png)
+
+Now we can see that round prices (100, 150, 200...) are over-represented. It tends to strongly confirm that prices are in Euros: We wouldn't observe this pattern if prices had been converted from Euros to US Dollars.
+
+### 3.3 Number of bedrooms
+
+The number of bedrooms by listing should be an important explanatory variable of our model. We can study its distribution and check the average price by number of bedrooms.
+
+```python
+listings_df.groupBy(['bedrooms']).mean('price').sort(asc('bedrooms')).show()
+```
+```
++--------+------------------+
+|bedrooms|        avg(price)|
++--------+------------------+
+|       1| 89.04847614840989|
+|       2| 151.3934151200587|
+|       3|214.81846392552367|
+|       4|  270.393536121673|
+|       5|305.35897435897436|
+|       6| 300.8181818181818|
+|       7|             195.4|
+|       9|             460.0|
+|      38|             119.0|
+|      50|              85.0|
++--------+------------------+
+```
+```python
+# Removing listings with more than 10 bedrooms
+listings_df = listings_df.filter((listings_df.bedrooms <= 10))
+
+max_bedrooms = listings_df.agg({"bedrooms": "max"}).collect()[0][0]
+bedrooms_histogram = listings_df.select(
+    "bedrooms").rdd.flatMap(lambda x: x).histogram(max_bedrooms-1)
+
+pd.DataFrame(list(zip(*bedrooms_histogram)),
+             columns=['bin', 'total']).set_index('bin').plot(kind='bar')
+plt.title("Number of bedrooms distribution")
+plt.xlabel("Number of bedrooms")
+plt.show()
+```
+
+We can see that the average price is increasing from 1 bedroom to 5. There are very few listings with more than 4 bedrooms. I also removed listings with more than 10 bedrooms as it doesn't seem very realistic for Parisian apartments.
+
+### 3.4 Location
+
