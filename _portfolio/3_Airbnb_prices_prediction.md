@@ -78,44 +78,6 @@ output.close()
 
 ### 2.2 Creating an RDD from the data
 
-Some functions will be required to cast the different fields while handling missing values: 
-
-```python
-def parseCSV(file):
-    """
-    Return a reader from a csv
-    """
-    reader = csv.reader(file.splitlines(), skipinitialspace=True) 
-    return(next(reader)) 
-
-def toFloat(field): 
-    """
-    Cast the input to a float
-    """
-    if field == '':
-        return None
-    else:
-        return float(field) 
-
-def toInt(field):
-    """
-    Cast the input to an integer
-    """
-    if field == '':
-        return None
-    else:
-        return int(field)
-
-def toString(field):
-    """
-    Cast the input to a string
-    """
-    if field == '':
-        return None
-    else:
-        return str(field)
-```
-
 It is time to launch a [Spark context](https://spark.apache.org/docs/2.3.0/api/java/org/apache/spark/SparkContext.html){:target="_blank"} and a [Spark session](https://spark.apache.org/docs/2.2.1/api/python/pyspark.sql.html?highlight=sqlcontext#pyspark.sql.SparkSession):
 
 ```python
@@ -123,7 +85,7 @@ sc = SparkContext()
 sparkSession = SparkSession(sc)
 ```
 
-And now we can create an RDD from the data:
+Now we can create an RDD from the data:
 
 ```python
 listings_rdd = sc.textFile('data/cleaned_listings.csv')
@@ -261,7 +223,250 @@ Total features:  106
 ```
 
 106 columns is a lot! I am going to keep only some of them according to the following criteria:
-1. Our scenario is to compute a price for a listing. In this context, data about ratings and comments
+- Our scenario is to compute a price based on the features of the apartment, the flexibility of the booking rules and the ratings. I won't include the price by extra guest and the cleaning fees as I think they could themselves be dependent on the price.
+- Some columns contain textual information which could be really valuable for our model but it could be complex to process and I won't get into NLP here yet. Thus I won't keep these columns.
+- Some columns contain data that won't be useful (such as the host name and id, redundant location columns). There are also some columns moslty unfilled like "experiences_offered" and "square_feet".
 
+We will see in the next section how to keep only the desired columns while building our DataFrame.
 
+### 2.3 Creating the DataFrame
 
+The DataFrame format will be easier to manipulate than the RDD. 
+
+I start by cleaning the RDD. I remove the header and I ensure that all the rows that I keep are correctly made of 106 columns:
+
+```python
+# Removing the header
+header = listings_rdd.take(1)
+listings_rdd = listings_rdd.filter(lambda line: line != header[0])
+
+# Filtering rows incorrectly formated
+listings_rdd = listings_rdd.filter(lambda line: len(line)==106) 
+```
+
+So far all the data is represented as strings. Some functions will be required to cast the different fields while also handling missing values: 
+
+```python
+def parseCSV(file):
+    """
+    Return a reader from a csv
+    """
+    reader = csv.reader(file.splitlines(), skipinitialspace=True) 
+    return(next(reader)) 
+
+def toFloat(field): 
+    """
+    Cast the input to a float
+    """
+    if field == '':
+        return None
+    else:
+        return float(field.strip('$').replace(',',''))
+
+def toInt(field):
+    """
+    Cast the input to an integer
+    """
+    if field == '':
+        return None
+    else:
+        return int(re.findall(r'-?\d+\.?\d*', field)[0])
+
+def toString(field):
+    """
+    Cast the input to a string
+    """
+    if field == '':
+        return None
+    else:
+        return str(field)
+```
+
+We can then apply these functions according to the data type of each column we want to keep:
+
+```python
+listings_cols = listings_rdd.map(lambda line: (
+                                        toString(line[25]),
+                                        toInt(line[26]),
+                                        toString(line[28]),
+                                        toString(line[36]),
+                                        toString(line[39]),
+                                        toFloat(line[48]),
+                                        toFloat(line[49]),
+                                        toString(line[51]),
+                                        toString(line[52]), 
+                                        toInt(line[53]), 
+                                        toFloat(line[54]), 
+                                        toInt(line[55]),
+                                        toInt(line[56]), 
+                                        toString(line[57]),
+                                        toInt(line[65]),
+                                        toInt(line[67]),
+                                        toInt(line[68]),
+                                        toInt(line[77]),
+                                        toInt(line[78]),
+                                        toInt(line[79]),
+                                        toInt(line[80]),
+                                        toInt(line[82]),
+                                        toInt(line[83]),
+                                        toInt(line[86]),
+                                        toInt(line[87]),
+                                        toInt(line[88]),
+                                        toInt(line[89]),
+                                        toInt(line[90]),
+                                        toInt(line[91]),
+                                        toInt(line[92]),
+                                        toString(line[96]),
+                                        toString(line[97]),
+                                        toString(line[98]),
+                                        toFloat(line[105]),
+                                        toFloat(line[60])))
+```
+
+Now we have to define a schema for our DataFrame, where we specify the data type of each column:
+
+```python
+listingsSchema = StructType([StructField("host_response_time", StringType(), True), # 3rd argument: nullable
+                             StructField("host_response_rate", IntegerType(), True),
+                             StructField("host_is_superhost", StringType(), True),
+                             StructField("host_identity_verified", StringType(), True),
+                             StructField("neighbourhood", StringType(), True),
+                             StructField("latitude", FloatType(), True),
+                             StructField("longitude", FloatType(), True),
+                             StructField("property_type", StringType(), True),
+                             StructField("room_type", StringType(), True),
+                             StructField("accomodates", IntegerType(), True),
+                             StructField("bathrooms", FloatType(), True),
+                             StructField("bedrooms", IntegerType(), True),
+                             StructField("beds", IntegerType(), True),
+                             StructField("bed_type", StringType(), True),
+                             StructField("guests_included", IntegerType(), True),
+                             StructField("minimum_night", IntegerType(), True),
+                             StructField("maximum_night", IntegerType(), True),
+                             StructField("availability_30", IntegerType(), True),
+                             StructField("availability_60", IntegerType(), True),
+                             StructField("availability_90", IntegerType(), True),
+                             StructField("availability_365", IntegerType(), True),
+                             StructField("number_of_reviews", IntegerType(), True),
+                             StructField("number_of_reviews_ltm", IntegerType(), True),
+                             StructField("review_scores_rating", IntegerType(), True),
+                             StructField("review_scores_accuracy", IntegerType(), True),
+                             StructField("review_scores_cleanliness", IntegerType(), True),
+                             StructField("review_scores_checkin", IntegerType(), True),
+                             StructField("review_scores_communication", IntegerType(), True),
+                             StructField("review_scores_location", IntegerType(), True),
+                             StructField("review_scores_value", IntegerType(), True),
+                             StructField("instant_bookable", StringType(), True),
+                             StructField("is_business_travel_ready", StringType(), True),
+                             StructField("cancellation_policy", StringType(), True),
+                             StructField("reviews_per_month", FloatType(), True),
+                             StructField("price", FloatType(), True)]) 
+```
+
+We can finally build our DataFrame!
+
+```python
+listings_df = sparkSession.createDataFrame(listings_cols, listingsSchema)
+```
+
+```python
+print("Number of rows : {}, number of columns : {}".format(listings_df.count(), len(listings_df.columns)))
+```
+```python
+Number of rows : 64970, number of columns : 35
+```
+
+```python
+# Check the first rows
+listings_df.show(5)
+```
+
+|host_response_time|host_response_rate|host_is_superhost|host_identity_verified| neighbourhood|latitude|longitude|property_type|      room_type|accomodates|bathrooms|bedrooms|beds|     bed_type|guests_included|minimum_night|maximum_night|availability_30|availability_60|availability_90|availability_365|number_of_reviews|number_of_reviews_ltm|review_scores_rating|review_scores_accuracy|review_scores_cleanliness|review_scores_checkin|review_scores_communication|review_scores_location|review_scores_value|instant_bookable|is_business_travel_ready| cancellation_policy|reviews_per_month|price|
+|------------------|------------------|-----------------|----------------------|--------------|--------|---------|-------------|---------------|-----------|---------|--------|----|-------------|---------------|-------------|-------------|---------------|---------------|---------------|----------------|-----------------|---------------------|--------------------|----------------------|-------------------------|---------------------|---------------------------|----------------------|-------------------|----------------|------------------------|--------------------|-----------------|-----|
+|within a few hours|               100|                f|                     f|  Observatoire|48.83349|  2.31852|    Apartment|Entire home/apt|          2|      1.0|       0|   1|     Real Bed|              1|            2|           30|              1|              9|              9|             246|                8|                    1|                 100|                    10|                       10|                   10|                         10|                    10|                 10|               f|                       f|            flexible|             0.24| 60.0|
+|    within an hour|               100|                f|                     t|Hôtel-de-Ville|  48.851|  2.35869|    Apartment|Entire home/apt|          2|      1.0|       0|   1|Pull-out Sofa|              1|            1|           90|              2|             17|             39|              70|              188|                   51|                  90|                     9|                        8|                    9|                          9|                    10|                  8|               t|                       f|strict_14_with_gr...|             1.51|115.0|
+|    within an hour|               100|                f|                     t|Hôtel-de-Ville|48.85758|  2.35275|    Apartment|Entire home/apt|          4|      1.0|       2|   2|     Real Bed|              2|           10|           23|              0|             17|             36|             257|              252|                   28|                  94|                    10|                        9|                   10|                         10|                    10|                 10|               f|                       f|            moderate|             2.45|119.0|
+|      within a day|               100|                f|                     t|         Opéra|48.87464|  2.34341|    Apartment|Entire home/apt|          2|      1.0|       1|   1|     Real Bed|              2|            6|          365|             17|             47|             77|             352|                6|                    0|                  96|                    10|                       10|                   10|                         10|                    10|                 10|               f|                       f|strict_14_with_gr...|             0.05|130.0|
+|               N/A|              null|                f|                     f|  Ménilmontant|48.86528|  2.39326|    Apartment|Entire home/apt|          3|      1.0|       1|   1|     Real Bed|              1|            3|          365|              0|              0|              0|             255|                1|                    0|                 100|                  null|                     null|                 null|                       null|                  null|               null|               f|                       f|            moderate|             0.01| 90.0|
+
+## 3. Data cleaning and exploration
+
+In this part we will start by doing some basic data cleaning. Then we will explore some interesting features while handling the possible outliers.
+
+### 3.1 Data cleaning
+I start by checking some statistics on the numerical columns:
+
+```python
+numerical_features = ['latitude', 'longitude', 'accomodates', 'bathrooms', 'bedrooms', 'beds', 
+                      'guests_included', 'minimum_night', 'maximum_night', 'number_of_reviews', 
+                      'review_scores_rating', 'review_scores_accuracy', 'review_scores_cleanliness',
+                      'review_scores_checkin', 'review_scores_communication', 'review_scores_location',
+                      'review_scores_value', 'reviews_per_month', 'price']
+listings_df.describe(numerical_features).show()
+```
+
+|summary|           latitude|          longitude|       accomodates|         bathrooms|          bedrooms|              beds|   guests_included|    minimum_night|    maximum_night| number_of_reviews|review_scores_rating|review_scores_accuracy|review_scores_cleanliness|review_scores_checkin|review_scores_communication|review_scores_location|review_scores_value| reviews_per_month|             price|
+|-------|-------------------|-------------------|------------------|------------------|------------------|------------------|------------------|-----------------|-----------------|------------------|--------------------|----------------------|-------------------------|---------------------|---------------------------|----------------------|-------------------|------------------|------------------|
+|  count|              64970|              64970|             64970|             64913|             64890|             64527|             64970|            64970|            64970|             64970|               50584|                 50536|                    50547|                50515|                      50542|                 50516|              50514|             51685|             64970|
+|   mean|  48.86417655246119| 2.3454444992811987| 3.053224565183931| 1.117819234976045| 1.086176606564956|1.6667906457761867|1.4869478220717254|5.277712790518701|860.1610281668462|19.430798830229335|   92.71753914281196|     9.575609466518918|        9.178052109917502|    9.659309116104128|          9.701594713307744|      9.65339694354264|  9.253296115928258|1.1937587307790405|118.25927351085116|
+| stddev|0.01842583839748577|0.03353845181900523|1.5544321421288472|0.6426539066996059|0.9812627635224233|1.1372279652650317| 1.033266132663016|44.34684034149566|39236.91056061497| 39.77816733064706|    8.78379733208202|    0.8283955368649675|       1.1109781122859097|   0.7733217218546118|         0.7347838002163867|    0.6988392276829006| 0.9339444395657538|1.4250697191394348|173.76838840491894|
+|    min|           48.81336|            2.22084|                 1|               0.0|                 0|                 0|                 1|                1|                1|                 0|                  20|                     2|                        2|                    2|                          2|                     2|                  2|              0.01|               0.0|
+|    max|           48.90573|            2.47427|                17|              50.0|                50|                50|                16|             9999|         10000000|               828|                 100|                    10|                       10|                   10|                         10|                    10|                 10|             40.54|           10000.0|
+
+I will remove the listings where there are no bathrooms, no bedrooms, no beds and a price equal to 0 as it seems inconsistent:
+
+```python
+listings_df = listings_df.filter((listings_df.bathrooms > 0) & 
+                                (listings_df.bedrooms > 0) &
+                                (listings_df.beds > 0) &
+                                (listings_df.price > 0))
+```
+
+I will now check the different kind of property types:
+
+```python
+listings_df.groupBy(["property_type"]).count().show(n=50)
+```
+```
++--------------------+-----+
+|       property_type|count|
++--------------------+-----+
+|           Apartment|44986|
+|           Townhouse|  230|
+|         Guest suite|   31|
+|Casa particular (...|    3|
+|           Camper/RV|    1|
+|      Boutique hotel|  850|
+|                Loft| 1052|
+|          Guesthouse|   84|
+|              Hostel|   51|
+|                Cave|    3|
+|               Villa|   13|
+|          Aparthotel|   21|
+|               Other|   72|
+|  Serviced apartment|  391|
+|               Hotel|  158|
+|             Cottage|    2|
+|        Nature lodge|    1|
+|               Igloo|    1|
+|         Condominium| 1514|
+|               House|  452|
+|                Boat|   15|
+|          Tiny house|   20|
+|           Houseboat|   12|
+|            Bungalow|    1|
+|   Bed and breakfast|  208|
++--------------------+-----+
+```
+
+We can see that there are some fanciful property types (not sure if sleeping in an Igloo is feasible in Paris!). I will only keep the most represented property type to restrict the complexity of my model.
+
+```python
+# Filter on property type
+property_type_list = ['Apartment', 'Townhouse', 'Boutique hotel', 'Loft', 
+                      'Guesthouse', 'Hostel', 'Other', 'Serviced apartment', 'Hotel', 
+                      'Condominium', 'House', 'Bed and breakfast']
+listings_df = listings_df.filter(listings_df.property_type.isin(property_type_list))
+```
+
+Are there the 
