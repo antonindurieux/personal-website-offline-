@@ -1183,3 +1183,58 @@ print("numTrees: ", model_CV.bestModel._java_obj.getNumTrees())
 maxDepth:  20
 numTrees:  25
 ```
+```python
+# Performances
+rf_R2_train = R2_evaluator.evaluate(predictions_train)
+rf_RMSE_train = RMSE_evaluator.evaluate(predictions_train)
+rf_MAE_train = MAE_evaluator.evaluate(predictions_train)
+print("R2 coefficient on the training set: %g" % rf_R2_train)
+print("RMSE on the training set: %g" % rf_RMSE_train)
+print("MAE on the training set: %g" % rf_MAE_train)
+
+print('===================================================')
+
+rf_R2_test = R2_evaluator.evaluate(predictions_test)
+rf_RMSE_test = RMSE_evaluator.evaluate(predictions_test)
+rf_MAE_test = MAE_evaluator.evaluate(predictions_test)
+print("R2 coefficient on the test set: %g" % rf_R2_test)
+print("RMSE on the test set: %g" % rf_RMSE_test)
+print("MAE on the test set: %g" % rf_MAE_test)
+```
+```
+Coefficient R2 sur le jeu d'entrainement : 0.916377
+RMSE sur le jeu d'entrainement : 20.7488
+MAE sur le jeu d'entrainement : 14.3465
+===================================================
+Coefficient R2 sur le jeu de test : 0.649354
+RMSE sur le jeu de test : 42.699
+MAE sur le jeu de test : 27.8767
+```
+
+COMPLETER TEXTE
+
+```python
+features_impt = dict(zip(featuresList, [i for i in model.featureImportances]))
+features_impt = sorted(features_impt.items(), key=operator.itemgetter(1), reverse=True)
+
+# Création de l'histogramme
+features_impt.reverse()
+features = [tup[0] for tup in features_impt]
+importances = [tup[1] for tup in features_impt]
+y_pos = np.arange(len(features)) 
+
+fig, ax = plt.subplots(figsize=(9, 25))
+plt.barh(y_pos, importances, align='center')
+ax.set_yticks(y_pos)
+ax.set_yticklabels(features) 
+ax.set_xlabel('importance')
+ax.set_title('Feature importances')
+plt.show()
+```
+![img6](/assets/images/airbnb_img6.png)
+
+
+
+
+
+
