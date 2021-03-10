@@ -37,6 +37,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 
+from urllib.request import urlopen
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
@@ -48,6 +49,8 @@ import geopandas as gpd
 import requests
 import gzip
 import shutil
+import json
+import plotly.express as px
 ```
 
 ### 2.1 Data import
@@ -500,9 +503,9 @@ listings_df.groupBy(["bed_type"]).count().show()
 +-------------+-----+
 ```
 
-Nothing seems too unrealistic so we won't filter values based on these columns.
+Nothing seems too unrealistic so we won't filter the data based on these columns.
 
-### 3.2 Prices ditribution
+### 3.2 Prices distribution
 
 We will check how the prices are ditributed:
 
@@ -592,8 +595,95 @@ plt.title("Number of bedrooms distribution")
 plt.xlabel("Number of bedrooms")
 plt.show()
 ```
+![img3](/assets/images/airbnb_img3.png)
 
 We can see that the average price is increasing from 1 bedroom to 5. There are very few listings with more than 4 bedrooms. I also removed listings with more than 10 bedrooms as it doesn't seem very realistic for Parisian apartments.
 
-### 3.4 Location
+### 3.4 Ratings
+
+We can check if the price seems related to the review scores:
+
+```python
+fig, axs = plt.subplots(1, 7, figsize=(25,3))
+
+for i in range(7):
+    axs[i].scatter(ratings_df[ratings_df.columns[i]], ratings_df.price, marker='.')
+    axs[i].set_xlabel(ratings_df.columns[i])
+axs[0].set_ylabel('price')
+plt.show()
+```
+![img4](/assets/images/airbnb_img4.png)
+
+### 3.5 Apartments locations
+
+The listings locations should probably have a major impact. We can generate maps to see this effect.
+
+```python
+# Get a Pandas DataFrame from the latitude, longitude and price columns
+coords_pandas_df = listings_df.select(['latitude', 'longitude', 'price']).toPandas()
+```
+
+```python
+# Plot a scatter map of the prices
+fig = px.scatter_mapbox(coords_pandas_df, 
+                        lat="latitude", 
+                        lon="longitude", 
+                        color="price", 
+                        color_continuous_scale="Agsunset", 
+                        zoom=11,
+                        mapbox_style="carto-positron", 
+                        height=700, 
+                        width=900)
+fig.update_traces(marker=dict(size=4), selector=dict(mode='markers'))
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.show()
+
+# Save the map as html
+fig.write_html("paris_prices_scatter.html")
+```
+
+Here is the result below, the map is interactive so you can zoom in for a more detailed view:
+
+<iframe width="1200" height="800" src="/assets/html/paris_prices_scatter.html" frameborder="0"></iframe>
+
+As expected, we see that the price varies a lot according to the listings locations. Now we can do a map by neighbourhood to have an aggregate view:
+
+```python
+# Get a Pandas DataFrame of the neighbourhoods average prices
+neighbourhood_price = listings_df.groupBy(['neighbourhood']).mean('price')
+neighbourhood_price_df = neighbourhood_price.toPandas()
+```
+
+```python
+# Get a geojson of the neighbourhoods
+with urlopen("http://data.insideairbnb.com/france/ile-de-france/paris/2019-09-16/visualisations/neighbourhoods.geojson") as response:
+    neighbourhoods_geojson = json.load(response)
+
+# Assign ids in the geojson so it works with plotly
+for i, elmt in enumerate(neighbourhoods_geojson['features']):
+    neighbourhoods_geojson['features'][i]['id'] = neighbourhoods_geojson['features'][i]['properties']['neighbourhood']
+```
+
+```python
+fig = px.choropleth_mapbox(neighbourhood_price_df, 
+                           geojson=neighbourhoods_geojson, 
+                           locations='neighbourhood', 
+                           color='avg(price)',
+                           color_continuous_scale="Agsunset",
+                           mapbox_style="carto-positron", 
+                           height=700, 
+                           width=900,
+                           zoom=11, 
+                           center = {"lat": 48.8534, "lon": 2.3488},
+                           opacity=0.5
+                          )
+fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.show()
+
+fig.write_html("paris_prices_chloropleth.html")
+```
+
+<iframe width="1200" height="800" src="/assets/html/paris_prices_chloropleth.html" frameborder="0"></iframe>
+
+We see that the average prices more than double according to the neighbourhood, so it should definitely be an important feature of the model.
 
