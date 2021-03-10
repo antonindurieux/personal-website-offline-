@@ -1,6 +1,6 @@
 ---
 title: "Airbnb price modeling with Spark"
-excerpt: "How to use Spark to work on the Paris Airbnb dataset, from data cleaning to price modeling."
+excerpt: "How to clean, explore and model prices on the Paris Airbnb dataset, with Spark."
 header:
   overlay_image: /assets/images/paris.jpg
   show_overlay_excerpt: true
@@ -9,9 +9,10 @@ header:
 classes: wide
 ---
 
-**Work In Progress**
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-On this article I will show how to use [Spark](https://spark.apache.org/){:target="_blank"} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a price by night aligned with the competition?
+In this article I will show how to use [Spark](https://spark.apache.org/){:target="_blank"} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a good price by night aligned with the competition?
 
 This scenario will be a good excuse to:
 - Show how to work with [PySpark](https://spark.apache.org/docs/latest/api/python/){:target="_blank"};
@@ -34,9 +35,14 @@ I will start by downloading and de-zipping the data. I will then show how to loa
 ```python
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
-from pyspark.ml.feature import StringIndexer
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
+from pyspark.ml.feature import OneHotEncoder, StringIndexer
+from pyspark.ml import Pipeline
+from pyspark.ml.feature import StandardScaler, VectorAssembler
+from pyspark.ml.evaluation import RegressionEvaluator
+from pyspark.ml.tuning import ParamGridBuilder, CrossValidator
+from pyspark.ml.regression import LinearRegression, RandomForestRegressor
 
 from urllib.request import urlopen
 import matplotlib.pyplot as plt
@@ -704,17 +710,19 @@ Finally, we can check the size of our DataFrame after filtering:
 print("Number of rows : {}, number of columns : {}".format(listings_df.count(), len(listings_df.columns)))
 ```
 ```
-Number of rows : 63453, number of columns : 35
+Number of rows : 48960, number of columns : 35
 ```
 
-So we got from 64970 to 63453 rows: **we filtered out a bit more than only 2% of the dataset**.
+So we got from 64970 to 48960 rows: we filtered out approximately 25% of the dataset.
 
-## 4. Features encoding
+## 4. Features preprocessing
 
-We will preprocess the data for modeling in this step. More specifically, we need to transform the categorical features into numbers so that the machine learning algorithms that we will use subsequently can work properly.
+### 4.1 One-hot encoding
+
+We will preprocess the data in this step, to prepare it for modeling. More specifically, we need to transform the categorical features into numbers so that the machine learning algorithms that we will use subsequently can work properly.
 To do that, we will use [one-hot encoding](https://spark.apache.org/docs/latest/ml-features#onehotencoder). Here is how to do it in Spark.
 
-First, we need to apply the a [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer) on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
+First, we need to apply the [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer) on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
 
 ```python
 indexer = StringIndexer(inputCol="host_response_time", outputCol="host_response_timeIndex", handleInvalid = 'keep')
@@ -746,4 +754,432 @@ listings_df = indexer.fit(listings_df).transform(listings_df)
 
 indexer = StringIndexer(inputCol="cancellation_policy", outputCol="cancellation_policyIndex", handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
+```
+
+```python
+# Exemple of StringIndexer encoding
+listings_df.select(['neighbourhood', 'neighbourhoodIndex']).show(5)
+```
+```
++--------------+------------------+
+| neighbourhood|neighbourhoodIndex|
++--------------+------------------+
+|Hôtel-de-Ville|              15.0|
+|         Opéra|               7.0|
+|  Ménilmontant|               5.0|
+|        Louvre|              19.0|
+|    Popincourt|               1.0|
++--------------+------------------+
+only showing top 5 rows
+```
+
+It will be usefull to keep track of the correspondence between indexes and categories. We create dictionaries for this:
+
+```python
+host_response_timeList = [f.metadata for f in listings_df.schema.fields if f.name == "host_response_timeIndex"]
+host_response_timeDict = dict(enumerate(host_response_timeList[0]["ml_attr"]["vals"]))
+
+host_is_superhostList = [f.metadata for f in listings_df.schema.fields if f.name == "host_is_superhostIndex"]
+host_is_superhostDict = dict(enumerate(host_is_superhostList[0]["ml_attr"]["vals"]))
+
+host_identity_verifiedList = [f.metadata for f in listings_df.schema.fields if f.name == "host_identity_verifiedIndex"]
+host_identity_verifiedDict = dict(enumerate(host_identity_verifiedList[0]["ml_attr"]["vals"]))
+
+neighbourhoodList = [f.metadata for f in listings_df.schema.fields if f.name == "neighbourhoodIndex"]
+neighbourhoodDict = dict(enumerate(neighbourhoodList[0]["ml_attr"]["vals"]))
+
+property_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "property_typeIndex"]
+property_typeDict = dict(enumerate(property_typeList[0]["ml_attr"]["vals"]))
+
+room_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "room_typeIndex"]
+room_typeDict = dict(enumerate(room_typeList[0]["ml_attr"]["vals"]))
+
+bed_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "bed_typeIndex"]
+bed_typeDict = dict(enumerate(bed_typeList[0]["ml_attr"]["vals"]))
+
+instant_bookableList = [f.metadata for f in listings_df.schema.fields if f.name == "instant_bookableIndex"]
+instant_bookableDict = dict(enumerate(instant_bookableList[0]["ml_attr"]["vals"]))
+
+is_business_travel_readyList = [f.metadata for f in listings_df.schema.fields if f.name == "is_business_travel_readyIndex"]
+is_business_travel_readyDict = dict(enumerate(is_business_travel_readyList[0]["ml_attr"]["vals"]))
+
+cancellation_policyList = [f.metadata for f in listings_df.schema.fields if f.name == "cancellation_policyIndex"]
+cancellation_policyDict = dict(enumerate(cancellation_policyList[0]["ml_attr"]["vals"]))
+```
+```python
+# StringIndexer to value dictionary exemple
+neighbourhoodDict
+```
+```
+{0: 'Buttes-Montmartre',
+ 1: 'Popincourt',
+ 2: 'Vaugirard',
+ 3: 'Entrepôt',
+ 4: 'Batignolles-Monceau',
+ 5: 'Ménilmontant',
+ 6: 'Buttes-Chaumont',
+ 7: 'Passy',
+ 8: 'Temple',
+ 9: 'Opéra',
+ 10: 'Reuilly',
+ 11: 'Observatoire',
+ 12: 'Gobelins',
+ 13: 'Panthéon',
+ 14: 'Bourse',
+ 15: 'Hôtel-de-Ville',
+ 16: 'Luxembourg',
+ 17: 'Palais-Bourbon',
+ 18: 'Élysée',
+ 19: 'Louvre',
+ 20: '__unknown'}
+```
+
+We can now proceed to one-hot encoding:
+
+```python
+inputCols = ["host_response_timeIndex",
+             "host_is_superhostIndex",
+             "host_identity_verifiedIndex",
+             "neighbourhoodIndex", 
+             "property_typeIndex", 
+             "room_typeIndex", 
+             "bed_typeIndex", 
+             "instant_bookableIndex",
+             "is_business_travel_readyIndex",
+             "cancellation_policyIndex"]
+
+outputCols = ["host_response_timeVec",
+              "host_is_superhostVec",
+              "host_identity_verifiedVec",
+              "neighbourhoodVec", 
+              "property_typeVec", 
+              "room_typeVec", 
+              "bed_typeVec", 
+              "instant_bookableVec",
+              "is_business_travel_readyVec",
+              "cancellation_policyVec"]
+
+encoder = OneHotEncoder(inputCols=inputCols, outputCols=outputCols, dropLast=False)
+    
+model = encoder.fit(listings_df)
+listings_df = model.transform(listings_df)
+```
+
+```python
+# Exemple of one-hot encoding
+listings_df.select(['neighbourhood', 'neighbourhoodIndex']).show(5)
+```
+```
++----------------+
+|neighbourhoodVec|
++----------------+
+| (21,[15],[1.0])|
+|  (21,[7],[1.0])|
+|  (21,[5],[1.0])|
+| (21,[19],[1.0])|
+|  (21,[1],[1.0])|
++----------------+
+only showing top 5 rows
+```
+
+### 4.2 Data normalization
+
+The latitude and longitude scales are way off the other features so I will normalize them thanks to a [standard scaler](https://spark.apache.org/docs/latest/ml-features#standardscaler):
+
+```python
+features_to_scale = ["latitude", "longitude"]
+
+# We need to combine the columns with a VectorAssembler for it to work
+assemblers = [VectorAssembler(inputCols=[col], outputCol=col + "_vec", handleInvalid="skip") for col in features_to_scale]
+
+scalers = [StandardScaler(inputCol=col + "_vec", outputCol=col + "_scaled",
+                        withStd=True, withMean=True) for col in features_to_scale]
+
+pipeline = Pipeline(stages=assemblers + scalers)
+
+# Compute summary statistics by fitting the StandardScaler
+scalerModel = pipeline.fit(listings_df)
+
+# Normalize each feature to have unit standard deviation
+scaledData = scalerModel.transform(listings_df)
+```
+
+```python
+# Checking the result
+scaledData.select(['latitude_scaled', 'longitude_scaled']).show(5)
+```
+```
++--------------------+--------------------+
+|     latitude_scaled|    longitude_scaled|
++--------------------+--------------------+
+|[-0.364062164896256]|[0.1903951327987812]|
+|[0.5493539943606123]|[-0.0896826714004...|
+|[0.04823097741083...|[1.4051570929592914]|
+|[-0.2885057197978...|[0.02846118857130...|
+|[-0.1128880365962...|[0.7478482674259408]|
++--------------------+--------------------+
+only showing top 5 rows
+```
+
+### 4.3 Assembling the data
+
+Spark needs the features to be merged into a single vector column in order to feed the machine learning algorithms. This is done thanks to a [vector assembler](https://spark.apache.org/docs/latest/ml-features#vectorassembler).
+
+At this point I also decided to remove some features that ultimately proved to be useless for modeling.
+
+```python
+vectorAssembler = VectorAssembler(inputCols = [#"host_response_timeVec",
+                                               #"host_response_rate",
+                                               "host_is_superhostVec",
+                                               #"host_identity_verifiedVec",
+                                               "neighbourhoodVec", 
+                                               "latitude_scaled",
+                                               "longitude_scaled",
+                                               "property_typeVec", 
+                                               "room_typeVec", 
+                                               "accomodates",
+                                               "bathrooms", 
+                                               "bedrooms", 
+                                               "beds", 
+                                               "bed_typeVec",
+                                               "guests_included",
+                                               "minimum_night",
+                                               "maximum_night",
+                                               "availability_30",
+                                               "availability_60",
+                                               "availability_90",
+                                               "availability_365",
+                                               "number_of_reviews",
+                                               #"number_of_reviews_ltm",
+                                               "review_scores_rating",
+                                               "review_scores_accuracy", 
+                                               "review_scores_cleanliness", 
+                                               "review_scores_checkin", 
+                                               "review_scores_communication",
+                                               "review_scores_location",
+                                               "review_scores_value",
+                                               "instant_bookableVec",
+                                               "is_business_travel_readyVec",
+                                               "cancellation_policyVec"],
+                                               #"reviews_per_month"], 
+                                  outputCol = 'features', 
+                                  handleInvalid="skip")
+
+vlistings_df = vectorAssembler.transform(scaledData)
+vlistings_df = vlistings_df.select(['features', 'price'])
+```
+
+```python
+# VectorAssembler output
+vlistings_df.show(5)
+```
+```
++--------------------+-----+
+|            features|price|
++--------------------+-----+
+|(81,[0,18,24,25,2...|119.0|
+|(81,[0,10,24,25,2...|130.0|
+|(81,[0,4,24,25,26...| 75.0|
+|(81,[0,21,24,25,2...| 90.0|
+|(81,[0,6,24,25,26...|157.0|
++--------------------+-----+
+only showing top 5 rows
+```
+```python
+# Whole first row
+vlistings_df.take(1)
+```
+```
+[Row(features=SparseVector(81, {0: 1.0, 18: 1.0, 24: -0.3641, 25: 0.1904, 26: 1.0, 39: 1.0, 44: 4.0, 45: 1.0, 46: 2.0, 47: 2.0, 48: 1.0, 54: 2.0, 55: 10.0, 56: 23.0, 58: 17.0, 59: 36.0, 60: 257.0, 61: 252.0, 62: 94.0, 63: 10.0, 64: 9.0, 65: 10.0, 66: 10.0, 67: 10.0, 68: 10.0, 69: 1.0, 72: 1.0, 76: 1.0}), price=119.0)]
+```
+Each took the form of a sparse vector of 81 elements.
+
+I then create a dictionary to keep track of each of the features:
+```python
+featuresList = ["host_is_superhost: " + string for string in host_is_superhostList[0]["ml_attr"]["vals"]] + \
+    ["neighbourhood: " + string for string in neighbourhoodList[0]["ml_attr"]["vals"]] + \
+    ["latitude"] + \
+    ["longitude"] + \
+    ["property_type: " + string for string in property_typeList[0]["ml_attr"]["vals"]] + \
+    ["room_type: " + string for string in room_typeList[0]["ml_attr"]["vals"]] + \
+    ["accomodates"] + \
+    ["bathrooms"] + \
+    ["bedrooms"] + \
+    ["beds"] + \
+    ["bed_type: " + string for string in bed_typeList[0]["ml_attr"]["vals"]] + \
+    ["guests_included"] + \
+    ["minimum_night"] + \
+    ["maximum_night"] + \
+    ["availability_30"] + \
+    ["availability_60"] + \
+    ["availability_90"] + \
+    ["availability_365"] + \
+    ["number_of_reviews"] + \
+    ["review_scores_rating"] + \
+    ["review_scores_accuracy"] + \
+    ["review_scores_cleanliness"] + \
+    ["review_scores_checkin"] + \
+    ["review_scores_communication"] + \
+    ["review_scores_location"] + \
+    ["review_scores_value"] + \
+    ["instant_bookable: " + string for string in instant_bookableList[0]["ml_attr"]["vals"]] + \
+    ["is_business_travel_ready: " + string for string in is_business_travel_readyList[0]["ml_attr"]["vals"]] + \
+    ["cancellation_policy: " + string for string in cancellation_policyList[0]["ml_attr"]["vals"]]
+    
+featuresDict = dict(enumerate(featuresList))
+```
+
+## 5. Price modeling
+
+Now we are ready to start the price modeling. We will try 2 different algorithm: first a linear regression with a grid search on regularization parameters, then a random forest to see if we can improve from there.
+
+As a first step, we split the data into a training and a test set (80 % / 20 %):
+
+```python
+splits = vlistings_df.randomSplit([0.8, 0.2])
+train_df = splits[0]
+test_df = splits[1]
+```
+
+We are going to evaluate the models on:
+- The $$R^{2}$$ coefficient, which measures the proportion of the variance in the dependent variable that is predictable from the independent variables;
+- The Root Mean Square Error (RMSE) which gives an indication on the average error amplitude;
+- The Mean Absolute Error (MAE) which is less sensitive to extreme values than the RMSE. It's interesting to compute it for this dataset as the price distribution is skewed.
+
+```python
+R2_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="r2")
+RMSE_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="rmse")
+MAE_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="mae")
+```
+
+### 5.1 Linear regression
+
+I will apply a linear regression and try to find the best hyperparameters for regularization thanks to a grid-search. Those hyperparameters are:
+- The regularization factor, `regParam`;
+- `elasticNetParam`, which control the combination of L1 to L2 penalty.
+
+The model evaluator will be the MAE, more sensitive to extreme values.
+
+```python
+linreg = LinearRegression(featuresCol = 'features',
+                          labelCol='price',
+                          maxIter=100)
+
+# Grid of hyperparameters
+paramGrid = ParamGridBuilder()\
+    .addGrid(linreg.regParam, [0.001, 0.01, 0.1, 1, 10, 100, 1000])\
+    .addGrid(linreg.elasticNetParam, [0, 0.25, 0.5, 0.75, 1])\
+    .build()
+
+# Evaluation on MAE
+evaluator = MAE_evaluator
+
+# Cross-validation
+crossval = CrossValidator(estimator=linreg,
+                          estimatorParamMaps=paramGrid,
+                          evaluator=evaluator,
+                          numFolds=5)
+
+model_CV = crossval.fit(train_df)
+
+# Predictions
+predictions_train = model_CV.transform(train_df)
+predictions_test = model_CV.transform(test_df)
+```
+
+```python
+print("Best regParam: ", model_CV.bestModel._java_obj.getRegParam())
+print("Best elasticNetParam: ", model_CV.bestModel._java_obj.getElasticNetParam())
+```
+```
+Best regParam :  1.0
+Best elasticNetParam :  0.5
+```
+
+```python
+# Performances
+lr_R2_train = R2_evaluator.evaluate(predictions_train)
+lr_RMSE_train = RMSE_evaluator.evaluate(predictions_train)
+lr_MAE_train = MAE_evaluator.evaluate(predictions_train)
+print("R2 coefficient on the training set: %g" % lr_R2_train)
+print("RMSE on the training set: %g" % lr_RMSE_train)
+print("MAE on the training set: %g" % lr_MAE_train)
+
+print('===================================================')
+
+lr_R2_test = R2_evaluator.evaluate(predictions_test)
+lr_RMSE_test = RMSE_evaluator.evaluate(predictions_test)
+lr_MAE_test = MAE_evaluator.evaluate(predictions_test)
+print("R2 coefficient on the test set: %g" % lr_R2_test)
+print("RMSE on the test set: %g" % lr_RMSE_test)
+print("MAE on the test set: %g" % lr_MAE_test)
+```
+```
+R2 coefficient on the trianing set: 0.613052
+RMSE on the training set: : 44.2276
+MAE on the training set: 29.7407
+===================================================
+R2 coefficient on the test set: 0.623953
+RMSE on the test set: 45.1533
+MAE on the test set: 30.1652
+```
+
+And here are the coefficient values:
+
+```python
+features_coefs = dict(zip(featuresList, [i for i in model_CV.bestModel.coefficients]))
+
+features = features_coefs.keys()
+coefs = features_coefs.values()
+y_pos = np.arange(len(features)) 
+
+fig, ax = plt.subplots(figsize=(9, 25))
+plt.barh(y_pos, coefs, align='center')
+ax.set_yticks(y_pos)
+ax.set_yticklabels(features) 
+ax.set_xlabel('coefficients')
+ax.set_title('Feature coefficients')
+plt.show()
+```
+![img5](/assets/images/airbnb_img5.png)
+
+### 5.2 Random forest
+
+Can we do better with a random forest? Let's check this.
+
+For this algorithm we will perform a grid search on a small set of values for the maximum depth and the number of trees. This grid search is very intense and needs a lot of RAM so unfortunately it's not convenient to launch a more extensive grid-search from a single computer.
+
+```python
+rf = RandomForestRegressor(featuresCol="features", 
+                           labelCol='price'
+                           ) 
+
+# Grid search
+paramGrid = ParamGridBuilder()\
+    .addGrid(rf.maxDepth, [5, 10, 20]) \
+    .addGrid(rf.numTrees, [20, 25, 30]) \
+    .build()
+
+# Evaluation on MAE
+evaluator = MAE_evaluator
+
+# Cross-validation
+crossval = CrossValidator(estimator=rf,
+                          estimatorParamMaps=paramGrid,
+                          evaluator=evaluator,
+                          numFolds=5)
+
+model_CV = crossval.fit(train_df)
+
+# Predictions
+predictions_train = model_CV.transform(train_df)
+predictions_test = model_CV.transform(test_df)
+```
+```python
+print("maxDepth: ", model_CV.bestModel._java_obj.getMaxDepth())
+print("numTrees: ", model_CV.bestModel._java_obj.getNumTrees())
+```
+```
+maxDepth:  20
+numTrees:  25
 ```
