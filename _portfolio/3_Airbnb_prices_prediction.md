@@ -32,10 +32,11 @@ I will start by downloading and de-zipping the data. I will then show how to loa
 
 ##### Python imports
 ```python
-from pyspark import SparkContext
-from pyspark.sql import SparkSession
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
+from pyspark.ml.feature import StringIndexer
+from pyspark import SparkContext
+from pyspark.sql import SparkSession
 
 from urllib.request import urlopen
 import matplotlib.pyplot as plt
@@ -604,15 +605,25 @@ We can see that the average price is increasing from 1 bedroom to 5. There are v
 We can check if the price seems related to the review scores:
 
 ```python
-fig, axs = plt.subplots(1, 7, figsize=(25,3))
+# Create a Pandas DataFrame of the reviews and the price
+ratings_df = listings_df[['review_scores_rating', 'review_scores_accuracy', 'review_scores_cleanliness',
+                         'review_scores_checkin', 'review_scores_communication', 'review_scores_location', 
+                          'review_scores_value', 'price']].toPandas()
+```
+
+```python
+fig, axs = plt.subplots(2, 4, figsize=(25,9))
 
 for i in range(7):
-    axs[i].scatter(ratings_df[ratings_df.columns[i]], ratings_df.price, marker='.')
-    axs[i].set_xlabel(ratings_df.columns[i])
-axs[0].set_ylabel('price')
+    axs[i//4, i%4].scatter(ratings_df[ratings_df.columns[i]], ratings_df.price, marker='.', alpha=0.3)
+    axs[i//4, i%4].set_xlabel(ratings_df.columns[i])
+    axs[i//4, i%4].set_ylabel('price')
+fig.delaxes(axs[1, 3])
 plt.show()
 ```
 ![img4](/assets/images/airbnb_img4.png)
+
+We see that low review ratings tend to have lower prices, but high ratings can correspond to the whole price range.
 
 ### 3.5 Apartments locations
 
@@ -687,3 +698,52 @@ fig.write_html("paris_prices_chloropleth.html")
 
 We see that the average prices more than double according to the neighbourhood, so it should definitely be an important feature of the model.
 
+Finally, we can check the size of our DataFrame after filtering:
+
+```python
+print("Number of rows : {}, number of columns : {}".format(listings_df.count(), len(listings_df.columns)))
+```
+```
+Number of rows : 63453, number of columns : 35
+```
+
+So we got from 64970 to 63453 rows: **we filtered out a bit more than only 2% of the dataset**.
+
+## 4. Features encoding
+
+We will preprocess the data for modeling in this step. More specifically, we need to transform the categorical features into numbers so that the machine learning algorithms that we will use subsequently can work properly.
+To do that, we will use [one-hot encoding](https://spark.apache.org/docs/latest/ml-features#onehotencoder). Here is how to do it in Spark.
+
+First, we need to apply the a [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer) on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
+
+```python
+indexer = StringIndexer(inputCol="host_response_time", outputCol="host_response_timeIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="host_is_superhost", outputCol="host_is_superhostIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="host_identity_verified", outputCol="host_identity_verifiedIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="neighbourhood", outputCol="neighbourhoodIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="property_type", outputCol="property_typeIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="room_type", outputCol="room_typeIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="bed_type", outputCol="bed_typeIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="instant_bookable", outputCol="instant_bookableIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="is_business_travel_ready", outputCol="is_business_travel_readyIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+
+indexer = StringIndexer(inputCol="cancellation_policy", outputCol="cancellation_policyIndex", handleInvalid = 'keep')
+listings_df = indexer.fit(listings_df).transform(listings_df)
+```
