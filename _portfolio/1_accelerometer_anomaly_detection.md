@@ -419,9 +419,9 @@ I tried various other approaches which gave very different results:
 
 From all these attempts, the kernel-PCA applied on the power spectrums seemed very interesting although I didn't manage to get my highest scores from it. 
 
-Without getting deep into its implementation, just look at the repartition of the test scores on the 3 first components of the kernel-PCA. The color scale is corresponding to the scores affected thanks to my first methodolgy (one-class SVM on statistical and frequency features):
+Without getting deep into its implementation, just look at the repartition of the test scores on the 3 first components of the kernel-PCA. The color scale is corresponding to the scores affected thanks to my first methodolgy (one-class SVM on statistical and frequency features). The figure is interactive so you can move it and zoom in:
 
-![img9](/assets/images/anomaly_detection_img9.png)
+<iframe width='1200' height='700' src='/assets/html/anomaly_detection_3D_scatter.html' frameborder='0'></iframe>
 
 What is interesting is that the low anomaly scores are concentrated into a small area while high scores are scattered around. So with 2 very different methods, we tend to detect similar anomalies. 
 
