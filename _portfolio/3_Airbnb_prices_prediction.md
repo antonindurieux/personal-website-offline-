@@ -1244,11 +1244,6 @@ This article showed how to use Spark for data loading, cleaning, exploration and
 Regarding the results of the price modeling, our best model reached an RMSE of around 43 €, an MAE of around 28 € and the model explained 65 % percent of the price variability.
 There is probably usefull additional information that hasn't been captured in the data, such as the apartment pictures.
 However, our results could certainly be improved by:
-- Using NLP on the various textual information in the data;
-- Take into account the amenities of the apartments;
+- Using NLP on the various textual information of the data;
+- Take the amenities of the apartments into account;
 - Try other algorithms and hyper-parameters with more flexibility (i.e. more computing power).
-
-
-
-
-
