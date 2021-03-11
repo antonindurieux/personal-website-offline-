@@ -2,34 +2,33 @@
 title: 'Airbnb price modeling with Spark'
 excerpt: 'How to clean, explore and model prices on the Paris Airbnb dataset, with Spark.'
 header:
-  overlay_image: /assets/images/paris.jpg
+  overlay_image: /assets/images/airbnb_cover_dark.png
   show_overlay_excerpt: true
-  caption: <span>Photo by <a href='https://unsplash.com/@nicolasjehly?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText'>Nicolas Jehly</a> on <a href='https://unsplash.com/s/photos/paris?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText'>Unsplash</a></span>
-  teaser: assets/images/paris.jpg
+  teaser: assets/images/airbnb_cover.png
 classes: wide
 ---
 
 <script src='https://polyfill.io/v3/polyfill.min.js?features=es6'></script>
 <script id='MathJax-script' async src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'></script>
 
-In this article I will show how to use [Spark](https://spark.apache.org/){:target='_blank'} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a good price by night aligned with the competition?
+In this article I will show how to use [Spark](https://spark.apache.org/){:target='_blank'} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a good price by night in line with the competition?
 
 This scenario will be a good excuse to:
 - Show how to work with [PySpark](https://spark.apache.org/docs/latest/api/python/){:target='_blank'};
 - Clean the dataset and explore some aspects of it;
 - Produce a price model.
 
-The iPython notebook of this project (with some adaptations) can be found [here](https://github.com/antonindurieux/Airbnb-price-analysis-with-Spark) (in french).
+This article has been adapted and improved from an iPython notebook I previously did on this project, which can be found [here](https://github.com/antonindurieux/Airbnb-price-analysis-with-Spark) (in french).
 
 ## 1. The data
 
-The data will be downloaded from http://insideairbnb.com/. As specified on the website, 'Inside Airbnb is an independent, non-commercial set of tools and data that allows you to explore how Airbnb is really being used in cities around the world'. There is a lot of very interesting and valuable data on this website, but we must keep in mind that the data is not from 'official sources' in case of inconsistencies.
+The data will be downloaded from [http://insideairbnb.com/](http://insideairbnb.com/){:target='_blank'}. As specified on the website, "Inside Airbnb is an independent, non-commercial set of tools and data that allows you to explore how Airbnb is really being used in cities around the world". There is a lot of very interesting and valuable data on this website, but we must keep in mind that the data is not from "official sources" in case of inconsistencies.
 
 I will use the Paris data, and more specifically the listings csv file which gives the characteristics of every listing in the city. This is a 227 MB dataset and I will process it on a single computer, so we won't take advantage of the full scalability benefits of Spark but it will show the different steps and procedures to work with it.
 
 ## 2. From the raw data to a Spark DataFrame
 
-I will start by downloading and de-zipping the data. I will then show how to load it in a RDD then to a DataFrame. An RDD is a [Resilient Distributed Datasets](https://spark.apache.org/docs/3.1.1/rdd-programming-guide.html#resilient-distributed-datasets-rdds){:target='_blank'}, the fundamental data structure of Spark. A SPark DataFrame ['is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood'](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}. At the time of this writing, Python still did not support another Spark data structure, the [Datasets](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}.
+I will start by downloading and de-zipping the data. I will then show how to load it in a RDD then to a DataFrame. An RDD is a [Resilient Distributed Datasets](https://spark.apache.org/docs/3.1.1/rdd-programming-guide.html#resilient-distributed-datasets-rdds){:target='_blank'}, the fundamental data structure of Spark. A Spark DataFrame ["is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood"](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}. At the time of this writing, Python still did not support another Spark data structure, the [Datasets](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}.
 
 ##### Python imports
 ```python
@@ -235,7 +234,7 @@ Total features:  106
 106 columns is a lot! I am going to keep only some of them according to the following criteria:
 - Our scenario is to compute a price based on the features of the apartment, the flexibility of the booking rules and the ratings. I won't include the price by extra guest and the cleaning fees as I think they could themselves be dependent on the price.
 - Some columns contain textual information which could be really valuable for our model but it could be complex to process and I won't get into NLP here yet. Thus I won't keep these columns.
-- Some columns contain data that won't be useful (such as the host name and id, redundant location columns). There are also some columns moslty unfilled like 'experiences_offered' and 'square_feet'.
+- Some columns contain data that won't be useful (such as the host name and id, redundant location columns). There are also some columns that I saw were moslty unfilled while skimming through the file, like "experiences_offered" and "square_feet".
 
 We will see in the next section how to keep only the desired columns while building our DataFrame.
 
@@ -663,7 +662,7 @@ Here is the result below, the map is interactive so you can zoom in for a more d
 
 <iframe width='1200' height='800' src='/assets/html/paris_prices_scatter.html' frameborder='0'></iframe>
 
-As expected, we see that the price varies a lot according to the listings locations. Now we can do a map by neighbourhood to have an aggregate view:
+As expected, we see that the price varies a lot according to the listings locations. Now we can do a map by neighbourhood to get an aggregate view:
 
 ```python
 # Get a Pandas DataFrame of the neighbourhoods average prices
@@ -720,9 +719,9 @@ So we got from 64970 to 48960 rows: we filtered out approximately 25% of the dat
 ### 4.1 One-hot encoding
 
 We will preprocess the data in this step, to prepare it for modeling. More specifically, we need to transform the categorical features into numbers so that the machine learning algorithms that we will use subsequently can work properly.
-To do that, we will use [one-hot encoding](https://spark.apache.org/docs/latest/ml-features#onehotencoder). Here is how to do it in Spark.
+To do that, we will use [one-hot encoding](https://spark.apache.org/docs/latest/ml-features#onehotencoder){:target='_blank'}. Here is how to do it in Spark.
 
-First, we need to apply the [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer) on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
+First, we need to apply the [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer){:target='_blank'} on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
 
 ```python
 indexer = StringIndexer(inputCol='host_response_time', outputCol='host_response_timeIndex', handleInvalid = 'keep')
@@ -867,24 +866,24 @@ listings_df = model.transform(listings_df)
 
 ```python
 # Exemple of one-hot encoding
-listings_df.select(['neighbourhood', 'neighbourhoodIndex']).show(5)
+listings_df.select(['neighbourhood', 'neighbourhoodIndex', 'neighbourhoodVec']).show(5)
 ```
 ```
-+----------------+
-|neighbourhoodVec|
-+----------------+
-| (21,[15],[1.0])|
-|  (21,[7],[1.0])|
-|  (21,[5],[1.0])|
-| (21,[19],[1.0])|
-|  (21,[1],[1.0])|
-+----------------+
++--------------+------------------+----------------+
+| neighbourhood|neighbourhoodIndex|neighbourhoodVec|
++--------------+------------------+----------------+
+|Hôtel-de-Ville|              15.0| (21,[15],[1.0])|
+|         Opéra|               7.0|  (21,[7],[1.0])|
+|  Ménilmontant|               5.0|  (21,[5],[1.0])|
+|        Louvre|              19.0| (21,[19],[1.0])|
+|    Popincourt|               1.0|  (21,[1],[1.0])|
++--------------+------------------+----------------+
 only showing top 5 rows
 ```
 
 ### 4.2 Data normalization
 
-The latitude and longitude scales are way off the other features so I will normalize them thanks to a [standard scaler](https://spark.apache.org/docs/latest/ml-features#standardscaler):
+The latitude and longitude scales are way off the other features so I will normalize them thanks to a [standard scaler](https://spark.apache.org/docs/latest/ml-features#standardscaler){:target='_blank'}:
 
 ```python
 features_to_scale = ['latitude', 'longitude']
@@ -1033,7 +1032,7 @@ featuresDict = dict(enumerate(featuresList))
 
 Now we are ready to start the price modeling. We will try 2 different algorithm: first a linear regression with a grid search on regularization parameters, then a random forest to see if we can improve from there.
 
-As a first step, we split the data into a training and a test set (80 % / 20 %):
+As a first step, we split the data into a training and a test set (80 / 20 %):
 
 ```python
 splits = vlistings_df.randomSplit([0.8, 0.2])
@@ -1115,7 +1114,7 @@ print('RMSE on the test set: %g' % lr_RMSE_test)
 print('MAE on the test set: %g' % lr_MAE_test)
 ```
 ```
-R2 coefficient on the trianing set: 0.613052
+R2 coefficient on the training set: 0.613052
 RMSE on the training set: : 44.2276
 MAE on the training set: 29.7407
 ===================================================
@@ -1151,8 +1150,7 @@ For this algorithm we will perform a grid search on a small set of values for th
 
 ```python
 rf = RandomForestRegressor(featuresCol='features', 
-                           labelCol='price'
-                           ) 
+                           labelCol='price') 
 
 # Grid search
 paramGrid = ParamGridBuilder()\
@@ -1241,13 +1239,13 @@ We see that the most important features are the number of bathrooms and bedrooms
 
 ## 6. Conclusion
 
-This article showed how to use Spark for data loading, cleaning, exploration and modeling. Spark has primarily been designed to work on big data and distributed environment but it works as well on a single computer, and could be [more efficient than Pandas in this case](https://databricks.com/fr/blog/2018/05/03/benchmarking-apache-spark-on-a-single-node-machine.html). So it's a very convenient tool for scalable data processing.
+This article showed how to use Spark for data loading, cleaning, exploration and modeling. Spark has primarily been designed to work on big data and distributed environment but it works as well on a single computer, and could be [more efficient than Pandas in this case](https://databricks.com/fr/blog/2018/05/03/benchmarking-apache-spark-on-a-single-node-machine.html){:target='_blank'}. So it's a very convenient tool for scalable data processing.
 
 Regarding the results of the price modeling, our best model reached an RMSE of around 43 €, an MAE of around 28 € and the model explained 65 % percent of the price variability.
 There is probably usefull additional information that hasn't been captured in the data, such as the apartment pictures.
-However, those results could certainly be improved with this dataset by:
+However, our results could certainly be improved by:
 - Using NLP on the various textual information in the data;
-- Take into account the activities, transportations and interesting places around the apartments;
+- Take into account the amenities of the apartments;
 - Try other algorithms and hyper-parameters with more flexibility (i.e. more computing power).
 
 
