@@ -1,21 +1,21 @@
 ---
-title: "Airbnb price modeling with Spark"
-excerpt: "How to clean, explore and model prices on the Paris Airbnb dataset, with Spark."
+title: 'Airbnb price modeling with Spark'
+excerpt: 'How to clean, explore and model prices on the Paris Airbnb dataset, with Spark.'
 header:
   overlay_image: /assets/images/paris.jpg
   show_overlay_excerpt: true
-  caption: <span>Photo by <a href="https://unsplash.com/@nicolasjehly?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Nicolas Jehly</a> on <a href="https://unsplash.com/s/photos/paris?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText">Unsplash</a></span>
+  caption: <span>Photo by <a href='https://unsplash.com/@nicolasjehly?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText'>Nicolas Jehly</a> on <a href='https://unsplash.com/s/photos/paris?utm_source=unsplash&amp;utm_medium=referral&amp;utm_content=creditCopyText'>Unsplash</a></span>
   teaser: assets/images/paris.jpg
 classes: wide
 ---
 
-<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script src='https://polyfill.io/v3/polyfill.min.js?features=es6'></script>
+<script id='MathJax-script' async src='https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js'></script>
 
-In this article I will show how to use [Spark](https://spark.apache.org/){:target="_blank"} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a good price by night aligned with the competition?
+In this article I will show how to use [Spark](https://spark.apache.org/){:target='_blank'} to work on the Paris Airbnb listings. I will put myself in the shoes of someone who put his parisian property on the famous lodging platform. A good question would thus be: given the features of my apartment (location, accomodation capacity, bedrooms...), as well as the flexibility of my booking rules (minimum and maximum number of nights, instant booking, cancellation rules...), and how much guests appreciate my accomodation, what would be a good price by night aligned with the competition?
 
 This scenario will be a good excuse to:
-- Show how to work with [PySpark](https://spark.apache.org/docs/latest/api/python/){:target="_blank"};
+- Show how to work with [PySpark](https://spark.apache.org/docs/latest/api/python/){:target='_blank'};
 - Clean the dataset and explore some aspects of it;
 - Produce a price model.
 
@@ -23,13 +23,13 @@ The iPython notebook of this project (with some adaptations) can be found [here]
 
 ## 1. The data
 
-The data will be downloaded from http://insideairbnb.com/. As specified on the website, "Inside Airbnb is an independent, non-commercial set of tools and data that allows you to explore how Airbnb is really being used in cities around the world". There is a lot of very interesting and valuable data on this website, but we must keep in mind that the data is not from "official sources" in case of inconsistencies.
+The data will be downloaded from http://insideairbnb.com/. As specified on the website, 'Inside Airbnb is an independent, non-commercial set of tools and data that allows you to explore how Airbnb is really being used in cities around the world'. There is a lot of very interesting and valuable data on this website, but we must keep in mind that the data is not from 'official sources' in case of inconsistencies.
 
-I will use the Paris data, and more specifically the listings csv file which gives the characteristics of every listing in the city.
+I will use the Paris data, and more specifically the listings csv file which gives the characteristics of every listing in the city. This is a 227 MB dataset and I will process it on a single computer, so we won't take advantage of the full scalability benefits of Spark but it will show the different steps and procedures to work with it.
 
 ## 2. From the raw data to a Spark DataFrame
 
-I will start by downloading and de-zipping the data. I will then show how to load it in a RDD then to a DataFrame. An RDD is a [Resilient Distributed Datasets](https://spark.apache.org/docs/3.1.1/rdd-programming-guide.html#resilient-distributed-datasets-rdds){:target="_blank"}, the fundamental data structure of Spark. A SPark DataFrame ["is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood"](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target="_blank"}. At the time of this writing, Python still did not support another Spark data structure, the [Datasets](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target="_blank"}.
+I will start by downloading and de-zipping the data. I will then show how to load it in a RDD then to a DataFrame. An RDD is a [Resilient Distributed Datasets](https://spark.apache.org/docs/3.1.1/rdd-programming-guide.html#resilient-distributed-datasets-rdds){:target='_blank'}, the fundamental data structure of Spark. A SPark DataFrame ['is conceptually equivalent to a table in a relational database or a data frame in R/Python, but with richer optimizations under the hood'](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}. At the time of this writing, Python still did not support another Spark data structure, the [Datasets](https://spark.apache.org/docs/latest/sql-programming-guide.html){:target='_blank'}.
 
 ##### Python imports
 ```python
@@ -63,9 +63,9 @@ import plotly.express as px
 ### 2.1 Data import
 
 ```python
-url = "http://data.insideairbnb.com/france/ile-de-france/paris/2019-09-16/data/listings.csv.gz"
-filename = url.split("/")[-1]
-with open(filename, "wb") as f:
+url = 'http://data.insideairbnb.com/france/ile-de-france/paris/2019-09-16/data/listings.csv.gz'
+filename = url.split('/')[-1]
+with open(filename, 'wb') as f:
     r = requests.get(url)
     f.write(r.content)
 
@@ -73,13 +73,13 @@ with gzip.open('listings.csv.gz', 'rb') as f_in:
     with open('data/listings.csv', 'wb') as f_out:
         shutil.copyfileobj(f_in, f_out)
 
-listings_csv = "data/listings.csv"
+listings_csv = 'data/listings.csv'
 ```
 
 The first cleaning step is to remove the newline characters contained in some of the fields of the data. Otherwise the whole data structure will be messed up and there will be errors while loading it.
 
 ```python
-with open(listings_csv, "r") as input, open("data/cleaned_listings.csv", "w") as output:
+with open(listings_csv, 'r') as input, open('data/cleaned_listings.csv', 'w') as output:
     w = csv.writer(output)
     for record in csv.reader(input):
         w.writerow(tuple(s.replace('\n', '') for s in record))
@@ -88,7 +88,7 @@ output.close()
 
 ### 2.2 Creating an RDD from the data
 
-It is time to launch a [Spark context](https://spark.apache.org/docs/2.3.0/api/java/org/apache/spark/SparkContext.html){:target="_blank"} and a [Spark session](https://spark.apache.org/docs/2.2.1/api/python/pyspark.sql.html?highlight=sqlcontext#pyspark.sql.SparkSession):
+It is time to launch a [Spark context](https://spark.apache.org/docs/2.3.0/api/java/org/apache/spark/SparkContext.html){:target='_blank'} and a [Spark session](https://spark.apache.org/docs/2.2.1/api/python/pyspark.sql.html?highlight=sqlcontext#pyspark.sql.SparkSession):
 
 ```python
 sc = SparkContext()
@@ -108,7 +108,7 @@ listings_rdd = listings_rdd.map(lambda x: parseCSV(x))
 ```
 
 ```python
-print("Number of entry in the rdd : %i" % listings_rdd.count())
+print('Number of entry in the rdd : %i' % listings_rdd.count())
 ```
 ```
 Number of entry in the rdd : 64971
@@ -119,7 +119,7 @@ We are going to get the list of the columns of the RDD:
 ```python
 n_features = len(listings_rdd.take(1)[0])
 feature_list = list(zip(listings_rdd.take(1)[0], list(range(n_features))))
-print("Total features: ", n_features)
+print('Total features: ', n_features)
 pprint.pprint(feature_list)
 ```
 ```
@@ -235,7 +235,7 @@ Total features:  106
 106 columns is a lot! I am going to keep only some of them according to the following criteria:
 - Our scenario is to compute a price based on the features of the apartment, the flexibility of the booking rules and the ratings. I won't include the price by extra guest and the cleaning fees as I think they could themselves be dependent on the price.
 - Some columns contain textual information which could be really valuable for our model but it could be complex to process and I won't get into NLP here yet. Thus I won't keep these columns.
-- Some columns contain data that won't be useful (such as the host name and id, redundant location columns). There are also some columns moslty unfilled like "experiences_offered" and "square_feet".
+- Some columns contain data that won't be useful (such as the host name and id, redundant location columns). There are also some columns moslty unfilled like 'experiences_offered' and 'square_feet'.
 
 We will see in the next section how to keep only the desired columns while building our DataFrame.
 
@@ -258,34 +258,34 @@ So far all the data is represented as strings. Some functions will be required t
 
 ```python
 def parseCSV(file):
-    """
+    '''
     Return a reader from a csv
-    """
+    '''
     reader = csv.reader(file.splitlines(), skipinitialspace=True) 
     return(next(reader)) 
 
 def toFloat(field): 
-    """
+    '''
     Cast the input to a float
-    """
+    '''
     if field == '':
         return None
     else:
         return float(field.strip('$').replace(',',''))
 
 def toInt(field):
-    """
+    '''
     Cast the input to an integer
-    """
+    '''
     if field == '':
         return None
     else:
         return int(re.findall(r'-?\d+\.?\d*', field)[0])
 
 def toString(field):
-    """
+    '''
     Cast the input to a string
-    """
+    '''
     if field == '':
         return None
     else:
@@ -336,41 +336,41 @@ listings_cols = listings_rdd.map(lambda line: (
 Now we have to define a schema for our DataFrame, where we specify the data type of each column:
 
 ```python
-listingsSchema = StructType([StructField("host_response_time", StringType(), True), # 3rd argument: nullable
-                             StructField("host_response_rate", IntegerType(), True),
-                             StructField("host_is_superhost", StringType(), True),
-                             StructField("host_identity_verified", StringType(), True),
-                             StructField("neighbourhood", StringType(), True),
-                             StructField("latitude", FloatType(), True),
-                             StructField("longitude", FloatType(), True),
-                             StructField("property_type", StringType(), True),
-                             StructField("room_type", StringType(), True),
-                             StructField("accomodates", IntegerType(), True),
-                             StructField("bathrooms", FloatType(), True),
-                             StructField("bedrooms", IntegerType(), True),
-                             StructField("beds", IntegerType(), True),
-                             StructField("bed_type", StringType(), True),
-                             StructField("guests_included", IntegerType(), True),
-                             StructField("minimum_night", IntegerType(), True),
-                             StructField("maximum_night", IntegerType(), True),
-                             StructField("availability_30", IntegerType(), True),
-                             StructField("availability_60", IntegerType(), True),
-                             StructField("availability_90", IntegerType(), True),
-                             StructField("availability_365", IntegerType(), True),
-                             StructField("number_of_reviews", IntegerType(), True),
-                             StructField("number_of_reviews_ltm", IntegerType(), True),
-                             StructField("review_scores_rating", IntegerType(), True),
-                             StructField("review_scores_accuracy", IntegerType(), True),
-                             StructField("review_scores_cleanliness", IntegerType(), True),
-                             StructField("review_scores_checkin", IntegerType(), True),
-                             StructField("review_scores_communication", IntegerType(), True),
-                             StructField("review_scores_location", IntegerType(), True),
-                             StructField("review_scores_value", IntegerType(), True),
-                             StructField("instant_bookable", StringType(), True),
-                             StructField("is_business_travel_ready", StringType(), True),
-                             StructField("cancellation_policy", StringType(), True),
-                             StructField("reviews_per_month", FloatType(), True),
-                             StructField("price", FloatType(), True)]) 
+listingsSchema = StructType([StructField('host_response_time', StringType(), True), # 3rd argument: nullable
+                             StructField('host_response_rate', IntegerType(), True),
+                             StructField('host_is_superhost', StringType(), True),
+                             StructField('host_identity_verified', StringType(), True),
+                             StructField('neighbourhood', StringType(), True),
+                             StructField('latitude', FloatType(), True),
+                             StructField('longitude', FloatType(), True),
+                             StructField('property_type', StringType(), True),
+                             StructField('room_type', StringType(), True),
+                             StructField('accomodates', IntegerType(), True),
+                             StructField('bathrooms', FloatType(), True),
+                             StructField('bedrooms', IntegerType(), True),
+                             StructField('beds', IntegerType(), True),
+                             StructField('bed_type', StringType(), True),
+                             StructField('guests_included', IntegerType(), True),
+                             StructField('minimum_night', IntegerType(), True),
+                             StructField('maximum_night', IntegerType(), True),
+                             StructField('availability_30', IntegerType(), True),
+                             StructField('availability_60', IntegerType(), True),
+                             StructField('availability_90', IntegerType(), True),
+                             StructField('availability_365', IntegerType(), True),
+                             StructField('number_of_reviews', IntegerType(), True),
+                             StructField('number_of_reviews_ltm', IntegerType(), True),
+                             StructField('review_scores_rating', IntegerType(), True),
+                             StructField('review_scores_accuracy', IntegerType(), True),
+                             StructField('review_scores_cleanliness', IntegerType(), True),
+                             StructField('review_scores_checkin', IntegerType(), True),
+                             StructField('review_scores_communication', IntegerType(), True),
+                             StructField('review_scores_location', IntegerType(), True),
+                             StructField('review_scores_value', IntegerType(), True),
+                             StructField('instant_bookable', StringType(), True),
+                             StructField('is_business_travel_ready', StringType(), True),
+                             StructField('cancellation_policy', StringType(), True),
+                             StructField('reviews_per_month', FloatType(), True),
+                             StructField('price', FloatType(), True)]) 
 ```
 
 We can finally build our DataFrame!
@@ -380,7 +380,7 @@ listings_df = sparkSession.createDataFrame(listings_cols, listingsSchema)
 ```
 
 ```python
-print("Number of rows : {}, number of columns : {}".format(listings_df.count(), len(listings_df.columns)))
+print('Number of rows : {}, number of columns : {}'.format(listings_df.count(), len(listings_df.columns)))
 ```
 ```python
 Number of rows : 64970, number of columns : 35
@@ -435,7 +435,7 @@ listings_df = listings_df.filter((listings_df.bathrooms > 0) &
 I will now check the different kind of property types:
 
 ```python
-listings_df.groupBy(["property_type"]).count().show(n=50)
+listings_df.groupBy(['property_type']).count().show(n=50)
 ```
 ```
 +--------------------+-----+
@@ -482,7 +482,7 @@ listings_df = listings_df.filter(listings_df.property_type.isin(property_type_li
 Similarly, are there some kind of weird values for the room and bed types ?
 
 ```python
-listings_df.groupBy(["room_type"]).count().show()
+listings_df.groupBy(['room_type']).count().show()
 ```
 ```
 +---------------+-----+
@@ -496,7 +496,7 @@ listings_df.groupBy(["room_type"]).count().show()
 ```
 
 ```python
-listings_df.groupBy(["bed_type"]).count().show()
+listings_df.groupBy(['bed_type']).count().show()
 ```
 ```
 +-------------+-----+
@@ -519,7 +519,7 @@ We will check how the prices are ditributed:
 ```python
 sns.set(rc={'figure.figsize': (9, 5)})
 
-bins, counts = listings_df.select("price").rdd.flatMap(lambda x: x).histogram(100)
+bins, counts = listings_df.select('price').rdd.flatMap(lambda x: x).histogram(100)
 
 fig, ax = plt.subplots()
 plt.hist(bins[:-1], bins=bins, weights=counts)
@@ -553,7 +553,7 @@ listings_df = listings_df.filter(listings_df.price < 500)
 ```
 
 ```python
-bins, counts = listings_df.select("price").rdd.flatMap(lambda x: x).histogram(100)
+bins, counts = listings_df.select('price').rdd.flatMap(lambda x: x).histogram(100)
 
 fig, ax = plt.subplots()
 plt.hist(bins[:-1], bins=bins, weights=counts)
@@ -592,14 +592,14 @@ listings_df.groupBy(['bedrooms']).mean('price').sort(asc('bedrooms')).show()
 # Removing listings with more than 10 bedrooms
 listings_df = listings_df.filter((listings_df.bedrooms <= 10))
 
-max_bedrooms = listings_df.agg({"bedrooms": "max"}).collect()[0][0]
+max_bedrooms = listings_df.agg({'bedrooms': 'max'}).collect()[0][0]
 bedrooms_histogram = listings_df.select(
-    "bedrooms").rdd.flatMap(lambda x: x).histogram(max_bedrooms-1)
+    'bedrooms').rdd.flatMap(lambda x: x).histogram(max_bedrooms-1)
 
 pd.DataFrame(list(zip(*bedrooms_histogram)),
              columns=['bin', 'total']).set_index('bin').plot(kind='bar')
-plt.title("Number of bedrooms distribution")
-plt.xlabel("Number of bedrooms")
+plt.title('Number of bedrooms distribution')
+plt.xlabel('Number of bedrooms')
 plt.show()
 ```
 ![img3](/assets/images/airbnb_img3.png)
@@ -643,25 +643,25 @@ coords_pandas_df = listings_df.select(['latitude', 'longitude', 'price']).toPand
 ```python
 # Plot a scatter map of the prices
 fig = px.scatter_mapbox(coords_pandas_df, 
-                        lat="latitude", 
-                        lon="longitude", 
-                        color="price", 
-                        color_continuous_scale="Agsunset", 
+                        lat='latitude', 
+                        lon='longitude', 
+                        color='price', 
+                        color_continuous_scale='Agsunset', 
                         zoom=11,
-                        mapbox_style="carto-positron", 
+                        mapbox_style='carto-positron', 
                         height=700, 
                         width=900)
 fig.update_traces(marker=dict(size=4), selector=dict(mode='markers'))
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.update_layout(margin={'r':0,'t':0,'l':0,'b':0})
 fig.show()
 
 # Save the map as html
-fig.write_html("paris_prices_scatter.html")
+fig.write_html('paris_prices_scatter.html')
 ```
 
 Here is the result below, the map is interactive so you can zoom in for a more detailed view:
 
-<iframe width="1200" height="800" src="/assets/html/paris_prices_scatter.html" frameborder="0"></iframe>
+<iframe width='1200' height='800' src='/assets/html/paris_prices_scatter.html' frameborder='0'></iframe>
 
 As expected, we see that the price varies a lot according to the listings locations. Now we can do a map by neighbourhood to have an aggregate view:
 
@@ -673,7 +673,7 @@ neighbourhood_price_df = neighbourhood_price.toPandas()
 
 ```python
 # Get a geojson of the neighbourhoods
-with urlopen("http://data.insideairbnb.com/france/ile-de-france/paris/2019-09-16/visualisations/neighbourhoods.geojson") as response:
+with urlopen('http://data.insideairbnb.com/france/ile-de-france/paris/2019-09-16/visualisations/neighbourhoods.geojson') as response:
     neighbourhoods_geojson = json.load(response)
 
 # Assign ids in the geojson so it works with plotly
@@ -686,28 +686,28 @@ fig = px.choropleth_mapbox(neighbourhood_price_df,
                            geojson=neighbourhoods_geojson, 
                            locations='neighbourhood', 
                            color='avg(price)',
-                           color_continuous_scale="Agsunset",
-                           mapbox_style="carto-positron", 
+                           color_continuous_scale='Agsunset',
+                           mapbox_style='carto-positron', 
                            height=700, 
                            width=900,
                            zoom=11, 
-                           center = {"lat": 48.8534, "lon": 2.3488},
+                           center = {'lat': 48.8534, 'lon': 2.3488},
                            opacity=0.5
                           )
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+fig.update_layout(margin={'r':0,'t':0,'l':0,'b':0})
 fig.show()
 
-fig.write_html("paris_prices_chloropleth.html")
+fig.write_html('paris_prices_chloropleth.html')
 ```
 
-<iframe width="1200" height="800" src="/assets/html/paris_prices_chloropleth.html" frameborder="0"></iframe>
+<iframe width='1200' height='800' src='/assets/html/paris_prices_chloropleth.html' frameborder='0'></iframe>
 
 We see that the average prices more than double according to the neighbourhood, so it should definitely be an important feature of the model.
 
 Finally, we can check the size of our DataFrame after filtering:
 
 ```python
-print("Number of rows : {}, number of columns : {}".format(listings_df.count(), len(listings_df.columns)))
+print('Number of rows : {}, number of columns : {}'.format(listings_df.count(), len(listings_df.columns)))
 ```
 ```
 Number of rows : 48960, number of columns : 35
@@ -725,34 +725,34 @@ To do that, we will use [one-hot encoding](https://spark.apache.org/docs/latest/
 First, we need to apply the [string indexer encoding](https://spark.apache.org/docs/latest/ml-features#stringindexer) on the categorical features. This encoding is a preliminary step for one-hot encoding. It transforms a categorical value into its index on the possible range of values. 
 
 ```python
-indexer = StringIndexer(inputCol="host_response_time", outputCol="host_response_timeIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='host_response_time', outputCol='host_response_timeIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="host_is_superhost", outputCol="host_is_superhostIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='host_is_superhost', outputCol='host_is_superhostIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="host_identity_verified", outputCol="host_identity_verifiedIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='host_identity_verified', outputCol='host_identity_verifiedIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="neighbourhood", outputCol="neighbourhoodIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='neighbourhood', outputCol='neighbourhoodIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="property_type", outputCol="property_typeIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='property_type', outputCol='property_typeIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="room_type", outputCol="room_typeIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='room_type', outputCol='room_typeIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="bed_type", outputCol="bed_typeIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='bed_type', outputCol='bed_typeIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="instant_bookable", outputCol="instant_bookableIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='instant_bookable', outputCol='instant_bookableIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="is_business_travel_ready", outputCol="is_business_travel_readyIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='is_business_travel_ready', outputCol='is_business_travel_readyIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 
-indexer = StringIndexer(inputCol="cancellation_policy", outputCol="cancellation_policyIndex", handleInvalid = 'keep')
+indexer = StringIndexer(inputCol='cancellation_policy', outputCol='cancellation_policyIndex', handleInvalid = 'keep')
 listings_df = indexer.fit(listings_df).transform(listings_df)
 ```
 
@@ -776,35 +776,35 @@ only showing top 5 rows
 It will be usefull to keep track of the correspondence between indexes and categories. We create dictionaries for this:
 
 ```python
-host_response_timeList = [f.metadata for f in listings_df.schema.fields if f.name == "host_response_timeIndex"]
-host_response_timeDict = dict(enumerate(host_response_timeList[0]["ml_attr"]["vals"]))
+host_response_timeList = [f.metadata for f in listings_df.schema.fields if f.name == 'host_response_timeIndex']
+host_response_timeDict = dict(enumerate(host_response_timeList[0]['ml_attr']['vals']))
 
-host_is_superhostList = [f.metadata for f in listings_df.schema.fields if f.name == "host_is_superhostIndex"]
-host_is_superhostDict = dict(enumerate(host_is_superhostList[0]["ml_attr"]["vals"]))
+host_is_superhostList = [f.metadata for f in listings_df.schema.fields if f.name == 'host_is_superhostIndex']
+host_is_superhostDict = dict(enumerate(host_is_superhostList[0]['ml_attr']['vals']))
 
-host_identity_verifiedList = [f.metadata for f in listings_df.schema.fields if f.name == "host_identity_verifiedIndex"]
-host_identity_verifiedDict = dict(enumerate(host_identity_verifiedList[0]["ml_attr"]["vals"]))
+host_identity_verifiedList = [f.metadata for f in listings_df.schema.fields if f.name == 'host_identity_verifiedIndex']
+host_identity_verifiedDict = dict(enumerate(host_identity_verifiedList[0]['ml_attr']['vals']))
 
-neighbourhoodList = [f.metadata for f in listings_df.schema.fields if f.name == "neighbourhoodIndex"]
-neighbourhoodDict = dict(enumerate(neighbourhoodList[0]["ml_attr"]["vals"]))
+neighbourhoodList = [f.metadata for f in listings_df.schema.fields if f.name == 'neighbourhoodIndex']
+neighbourhoodDict = dict(enumerate(neighbourhoodList[0]['ml_attr']['vals']))
 
-property_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "property_typeIndex"]
-property_typeDict = dict(enumerate(property_typeList[0]["ml_attr"]["vals"]))
+property_typeList = [f.metadata for f in listings_df.schema.fields if f.name == 'property_typeIndex']
+property_typeDict = dict(enumerate(property_typeList[0]['ml_attr']['vals']))
 
-room_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "room_typeIndex"]
-room_typeDict = dict(enumerate(room_typeList[0]["ml_attr"]["vals"]))
+room_typeList = [f.metadata for f in listings_df.schema.fields if f.name == 'room_typeIndex']
+room_typeDict = dict(enumerate(room_typeList[0]['ml_attr']['vals']))
 
-bed_typeList = [f.metadata for f in listings_df.schema.fields if f.name == "bed_typeIndex"]
-bed_typeDict = dict(enumerate(bed_typeList[0]["ml_attr"]["vals"]))
+bed_typeList = [f.metadata for f in listings_df.schema.fields if f.name == 'bed_typeIndex']
+bed_typeDict = dict(enumerate(bed_typeList[0]['ml_attr']['vals']))
 
-instant_bookableList = [f.metadata for f in listings_df.schema.fields if f.name == "instant_bookableIndex"]
-instant_bookableDict = dict(enumerate(instant_bookableList[0]["ml_attr"]["vals"]))
+instant_bookableList = [f.metadata for f in listings_df.schema.fields if f.name == 'instant_bookableIndex']
+instant_bookableDict = dict(enumerate(instant_bookableList[0]['ml_attr']['vals']))
 
-is_business_travel_readyList = [f.metadata for f in listings_df.schema.fields if f.name == "is_business_travel_readyIndex"]
-is_business_travel_readyDict = dict(enumerate(is_business_travel_readyList[0]["ml_attr"]["vals"]))
+is_business_travel_readyList = [f.metadata for f in listings_df.schema.fields if f.name == 'is_business_travel_readyIndex']
+is_business_travel_readyDict = dict(enumerate(is_business_travel_readyList[0]['ml_attr']['vals']))
 
-cancellation_policyList = [f.metadata for f in listings_df.schema.fields if f.name == "cancellation_policyIndex"]
-cancellation_policyDict = dict(enumerate(cancellation_policyList[0]["ml_attr"]["vals"]))
+cancellation_policyList = [f.metadata for f in listings_df.schema.fields if f.name == 'cancellation_policyIndex']
+cancellation_policyDict = dict(enumerate(cancellation_policyList[0]['ml_attr']['vals']))
 ```
 ```python
 # StringIndexer to value dictionary exemple
@@ -837,27 +837,27 @@ neighbourhoodDict
 We can now proceed to one-hot encoding:
 
 ```python
-inputCols = ["host_response_timeIndex",
-             "host_is_superhostIndex",
-             "host_identity_verifiedIndex",
-             "neighbourhoodIndex", 
-             "property_typeIndex", 
-             "room_typeIndex", 
-             "bed_typeIndex", 
-             "instant_bookableIndex",
-             "is_business_travel_readyIndex",
-             "cancellation_policyIndex"]
+inputCols = ['host_response_timeIndex',
+             'host_is_superhostIndex',
+             'host_identity_verifiedIndex',
+             'neighbourhoodIndex', 
+             'property_typeIndex', 
+             'room_typeIndex', 
+             'bed_typeIndex', 
+             'instant_bookableIndex',
+             'is_business_travel_readyIndex',
+             'cancellation_policyIndex']
 
-outputCols = ["host_response_timeVec",
-              "host_is_superhostVec",
-              "host_identity_verifiedVec",
-              "neighbourhoodVec", 
-              "property_typeVec", 
-              "room_typeVec", 
-              "bed_typeVec", 
-              "instant_bookableVec",
-              "is_business_travel_readyVec",
-              "cancellation_policyVec"]
+outputCols = ['host_response_timeVec',
+              'host_is_superhostVec',
+              'host_identity_verifiedVec',
+              'neighbourhoodVec', 
+              'property_typeVec', 
+              'room_typeVec', 
+              'bed_typeVec', 
+              'instant_bookableVec',
+              'is_business_travel_readyVec',
+              'cancellation_policyVec']
 
 encoder = OneHotEncoder(inputCols=inputCols, outputCols=outputCols, dropLast=False)
     
@@ -887,12 +887,12 @@ only showing top 5 rows
 The latitude and longitude scales are way off the other features so I will normalize them thanks to a [standard scaler](https://spark.apache.org/docs/latest/ml-features#standardscaler):
 
 ```python
-features_to_scale = ["latitude", "longitude"]
+features_to_scale = ['latitude', 'longitude']
 
 # We need to combine the columns with a VectorAssembler for it to work
-assemblers = [VectorAssembler(inputCols=[col], outputCol=col + "_vec", handleInvalid="skip") for col in features_to_scale]
+assemblers = [VectorAssembler(inputCols=[col], outputCol=col + '_vec', handleInvalid='skip') for col in features_to_scale]
 
-scalers = [StandardScaler(inputCol=col + "_vec", outputCol=col + "_scaled",
+scalers = [StandardScaler(inputCol=col + '_vec', outputCol=col + '_scaled',
                         withStd=True, withMean=True) for col in features_to_scale]
 
 pipeline = Pipeline(stages=assemblers + scalers)
@@ -928,42 +928,42 @@ Spark needs the features to be merged into a single vector column in order to fe
 At this point I also decided to remove some features that ultimately proved to be useless for modeling.
 
 ```python
-vectorAssembler = VectorAssembler(inputCols = [#"host_response_timeVec",
-                                               #"host_response_rate",
-                                               "host_is_superhostVec",
-                                               #"host_identity_verifiedVec",
-                                               "neighbourhoodVec", 
-                                               "latitude_scaled",
-                                               "longitude_scaled",
-                                               "property_typeVec", 
-                                               "room_typeVec", 
-                                               "accomodates",
-                                               "bathrooms", 
-                                               "bedrooms", 
-                                               "beds", 
-                                               "bed_typeVec",
-                                               "guests_included",
-                                               "minimum_night",
-                                               "maximum_night",
-                                               "availability_30",
-                                               "availability_60",
-                                               "availability_90",
-                                               "availability_365",
-                                               "number_of_reviews",
-                                               #"number_of_reviews_ltm",
-                                               "review_scores_rating",
-                                               "review_scores_accuracy", 
-                                               "review_scores_cleanliness", 
-                                               "review_scores_checkin", 
-                                               "review_scores_communication",
-                                               "review_scores_location",
-                                               "review_scores_value",
-                                               "instant_bookableVec",
-                                               "is_business_travel_readyVec",
-                                               "cancellation_policyVec"],
-                                               #"reviews_per_month"], 
+vectorAssembler = VectorAssembler(inputCols = [#'host_response_timeVec',
+                                               #'host_response_rate',
+                                               'host_is_superhostVec',
+                                               #'host_identity_verifiedVec',
+                                               'neighbourhoodVec', 
+                                               'latitude_scaled',
+                                               'longitude_scaled',
+                                               'property_typeVec', 
+                                               'room_typeVec', 
+                                               'accomodates',
+                                               'bathrooms', 
+                                               'bedrooms', 
+                                               'beds', 
+                                               'bed_typeVec',
+                                               'guests_included',
+                                               'minimum_night',
+                                               'maximum_night',
+                                               'availability_30',
+                                               'availability_60',
+                                               'availability_90',
+                                               'availability_365',
+                                               'number_of_reviews',
+                                               #'number_of_reviews_ltm',
+                                               'review_scores_rating',
+                                               'review_scores_accuracy', 
+                                               'review_scores_cleanliness', 
+                                               'review_scores_checkin', 
+                                               'review_scores_communication',
+                                               'review_scores_location',
+                                               'review_scores_value',
+                                               'instant_bookableVec',
+                                               'is_business_travel_readyVec',
+                                               'cancellation_policyVec'],
+                                               #'reviews_per_month'], 
                                   outputCol = 'features', 
-                                  handleInvalid="skip")
+                                  handleInvalid='skip')
 
 vlistings_df = vectorAssembler.transform(scaledData)
 vlistings_df = vlistings_df.select(['features', 'price'])
@@ -996,35 +996,35 @@ Each took the form of a sparse vector of 81 elements.
 
 I then create a dictionary to keep track of each of the features:
 ```python
-featuresList = ["host_is_superhost: " + string for string in host_is_superhostList[0]["ml_attr"]["vals"]] + \
-    ["neighbourhood: " + string for string in neighbourhoodList[0]["ml_attr"]["vals"]] + \
-    ["latitude"] + \
-    ["longitude"] + \
-    ["property_type: " + string for string in property_typeList[0]["ml_attr"]["vals"]] + \
-    ["room_type: " + string for string in room_typeList[0]["ml_attr"]["vals"]] + \
-    ["accomodates"] + \
-    ["bathrooms"] + \
-    ["bedrooms"] + \
-    ["beds"] + \
-    ["bed_type: " + string for string in bed_typeList[0]["ml_attr"]["vals"]] + \
-    ["guests_included"] + \
-    ["minimum_night"] + \
-    ["maximum_night"] + \
-    ["availability_30"] + \
-    ["availability_60"] + \
-    ["availability_90"] + \
-    ["availability_365"] + \
-    ["number_of_reviews"] + \
-    ["review_scores_rating"] + \
-    ["review_scores_accuracy"] + \
-    ["review_scores_cleanliness"] + \
-    ["review_scores_checkin"] + \
-    ["review_scores_communication"] + \
-    ["review_scores_location"] + \
-    ["review_scores_value"] + \
-    ["instant_bookable: " + string for string in instant_bookableList[0]["ml_attr"]["vals"]] + \
-    ["is_business_travel_ready: " + string for string in is_business_travel_readyList[0]["ml_attr"]["vals"]] + \
-    ["cancellation_policy: " + string for string in cancellation_policyList[0]["ml_attr"]["vals"]]
+featuresList = ['host_is_superhost: ' + string for string in host_is_superhostList[0]['ml_attr']['vals']] + \
+    ['neighbourhood: ' + string for string in neighbourhoodList[0]['ml_attr']['vals']] + \
+    ['latitude'] + \
+    ['longitude'] + \
+    ['property_type: ' + string for string in property_typeList[0]['ml_attr']['vals']] + \
+    ['room_type: ' + string for string in room_typeList[0]['ml_attr']['vals']] + \
+    ['accomodates'] + \
+    ['bathrooms'] + \
+    ['bedrooms'] + \
+    ['beds'] + \
+    ['bed_type: ' + string for string in bed_typeList[0]['ml_attr']['vals']] + \
+    ['guests_included'] + \
+    ['minimum_night'] + \
+    ['maximum_night'] + \
+    ['availability_30'] + \
+    ['availability_60'] + \
+    ['availability_90'] + \
+    ['availability_365'] + \
+    ['number_of_reviews'] + \
+    ['review_scores_rating'] + \
+    ['review_scores_accuracy'] + \
+    ['review_scores_cleanliness'] + \
+    ['review_scores_checkin'] + \
+    ['review_scores_communication'] + \
+    ['review_scores_location'] + \
+    ['review_scores_value'] + \
+    ['instant_bookable: ' + string for string in instant_bookableList[0]['ml_attr']['vals']] + \
+    ['is_business_travel_ready: ' + string for string in is_business_travel_readyList[0]['ml_attr']['vals']] + \
+    ['cancellation_policy: ' + string for string in cancellation_policyList[0]['ml_attr']['vals']]
     
 featuresDict = dict(enumerate(featuresList))
 ```
@@ -1047,9 +1047,9 @@ We are going to evaluate the models on:
 - The Mean Absolute Error (MAE) which is less sensitive to extreme values than the RMSE. It's interesting to compute it for this dataset as the price distribution is skewed.
 
 ```python
-R2_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="r2")
-RMSE_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="rmse")
-MAE_evaluator = RegressionEvaluator(predictionCol="prediction", labelCol="price", metricName="mae")
+R2_evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='price', metricName='r2')
+RMSE_evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='price', metricName='rmse')
+MAE_evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='price', metricName='mae')
 ```
 
 ### 5.1 Linear regression
@@ -1088,8 +1088,8 @@ predictions_test = model_CV.transform(test_df)
 ```
 
 ```python
-print("Best regParam: ", model_CV.bestModel._java_obj.getRegParam())
-print("Best elasticNetParam: ", model_CV.bestModel._java_obj.getElasticNetParam())
+print('Best regParam: ', model_CV.bestModel._java_obj.getRegParam())
+print('Best elasticNetParam: ', model_CV.bestModel._java_obj.getElasticNetParam())
 ```
 ```
 Best regParam :  1.0
@@ -1101,18 +1101,18 @@ Best elasticNetParam :  0.5
 lr_R2_train = R2_evaluator.evaluate(predictions_train)
 lr_RMSE_train = RMSE_evaluator.evaluate(predictions_train)
 lr_MAE_train = MAE_evaluator.evaluate(predictions_train)
-print("R2 coefficient on the training set: %g" % lr_R2_train)
-print("RMSE on the training set: %g" % lr_RMSE_train)
-print("MAE on the training set: %g" % lr_MAE_train)
+print('R2 coefficient on the training set: %g' % lr_R2_train)
+print('RMSE on the training set: %g' % lr_RMSE_train)
+print('MAE on the training set: %g' % lr_MAE_train)
 
 print('===================================================')
 
 lr_R2_test = R2_evaluator.evaluate(predictions_test)
 lr_RMSE_test = RMSE_evaluator.evaluate(predictions_test)
 lr_MAE_test = MAE_evaluator.evaluate(predictions_test)
-print("R2 coefficient on the test set: %g" % lr_R2_test)
-print("RMSE on the test set: %g" % lr_RMSE_test)
-print("MAE on the test set: %g" % lr_MAE_test)
+print('R2 coefficient on the test set: %g' % lr_R2_test)
+print('RMSE on the test set: %g' % lr_RMSE_test)
+print('MAE on the test set: %g' % lr_MAE_test)
 ```
 ```
 R2 coefficient on the trianing set: 0.613052
@@ -1145,12 +1145,12 @@ plt.show()
 
 ### 5.2 Random forest
 
-Can we do better with a random forest? Let's check this.
+Can we do better with a random forest? Let's check.
 
 For this algorithm we will perform a grid search on a small set of values for the maximum depth and the number of trees. This grid search is very intense and needs a lot of RAM so unfortunately it's not convenient to launch a more extensive grid-search from a single computer.
 
 ```python
-rf = RandomForestRegressor(featuresCol="features", 
+rf = RandomForestRegressor(featuresCol='features', 
                            labelCol='price'
                            ) 
 
@@ -1176,8 +1176,8 @@ predictions_train = model_CV.transform(train_df)
 predictions_test = model_CV.transform(test_df)
 ```
 ```python
-print("maxDepth: ", model_CV.bestModel._java_obj.getMaxDepth())
-print("numTrees: ", model_CV.bestModel._java_obj.getNumTrees())
+print('maxDepth: ', model_CV.bestModel._java_obj.getMaxDepth())
+print('numTrees: ', model_CV.bestModel._java_obj.getNumTrees())
 ```
 ```
 maxDepth:  20
@@ -1188,36 +1188,40 @@ numTrees:  25
 rf_R2_train = R2_evaluator.evaluate(predictions_train)
 rf_RMSE_train = RMSE_evaluator.evaluate(predictions_train)
 rf_MAE_train = MAE_evaluator.evaluate(predictions_train)
-print("R2 coefficient on the training set: %g" % rf_R2_train)
-print("RMSE on the training set: %g" % rf_RMSE_train)
-print("MAE on the training set: %g" % rf_MAE_train)
+print('R2 coefficient on the training set: %g' % rf_R2_train)
+print('RMSE on the training set: %g' % rf_RMSE_train)
+print('MAE on the training set: %g' % rf_MAE_train)
 
 print('===================================================')
 
 rf_R2_test = R2_evaluator.evaluate(predictions_test)
 rf_RMSE_test = RMSE_evaluator.evaluate(predictions_test)
 rf_MAE_test = MAE_evaluator.evaluate(predictions_test)
-print("R2 coefficient on the test set: %g" % rf_R2_test)
-print("RMSE on the test set: %g" % rf_RMSE_test)
-print("MAE on the test set: %g" % rf_MAE_test)
+print('R2 coefficient on the test set: %g' % rf_R2_test)
+print('RMSE on the test set: %g' % rf_RMSE_test)
+print('MAE on the test set: %g' % rf_MAE_test)
 ```
 ```
-Coefficient R2 sur le jeu d'entrainement : 0.916377
-RMSE sur le jeu d'entrainement : 20.7488
-MAE sur le jeu d'entrainement : 14.3465
+R2 coefficient on the training set: 0.916377
+RMSE on the training set: 20.7488
+MAE on the training set: 14.3465
 ===================================================
-Coefficient R2 sur le jeu de test : 0.649354
-RMSE sur le jeu de test : 42.699
-MAE sur le jeu de test : 27.8767
+R2 coefficient on the test set: 0.649354
+RMSE on the test set: 42.699
+MAE on the test set: 27.8767
 ```
 
-COMPLETER TEXTE
+So yes! We slightly improved all the performance criteria:
+- The $$R^2$$ coefficient has been improved from 0.61 to 0.65
+- The RMSE has been improved from 45.15 € to 42.70 €
+- The MAE has been improved from 30.17 € to 27.88 €
+
+We can also check the feature importance of the random forest model:
 
 ```python
 features_impt = dict(zip(featuresList, [i for i in model.featureImportances]))
 features_impt = sorted(features_impt.items(), key=operator.itemgetter(1), reverse=True)
 
-# Création de l'histogramme
 features_impt.reverse()
 features = [tup[0] for tup in features_impt]
 importances = [tup[1] for tup in features_impt]
@@ -1233,6 +1237,18 @@ plt.show()
 ```
 ![img6](/assets/images/airbnb_img6.png)
 
+We see that the most important features are the number of bathrooms and bedrooms, the number of accomodated people, the location and the availability.
+
+## 6. Conclusion
+
+This article showed how to use Spark for data loading, cleaning, exploration and modeling. Spark has primarily been designed to work on big data and distributed environment but it works as well on a single computer, and could be [more efficient than Pandas in this case](https://databricks.com/fr/blog/2018/05/03/benchmarking-apache-spark-on-a-single-node-machine.html). So it's a very convenient tool for scalable data processing.
+
+Regarding the results of the price modeling, our best model reached an RMSE of around 43 €, an MAE of around 28 € and the model explained 65 % percent of the price variability.
+There is probably usefull additional information that hasn't been captured in the data, such as the apartment pictures.
+However, those results could certainly be improved with this dataset by:
+- Using NLP on the various textual information in the data;
+- Take into account the activities, transportations and interesting places around the apartments;
+- Try other algorithms and hyper-parameters with more flexibility (i.e. more computing power).
 
 
 
