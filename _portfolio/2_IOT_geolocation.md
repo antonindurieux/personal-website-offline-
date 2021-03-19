@@ -199,12 +199,12 @@ Base stations located in the Nunavut - test set :
   4993  7248  8355  8449  8451  8560  9941  9949 10151 10162 11007]
  ```
 
-There are 27 stations that seem wrong-located in the training set and 23 in the test set.
+There are 27 stations that seem wrongly-located in the training set and 23 in the test set.
 
 If we zoom on the south-western corner of the map, here is what we get:
 ![img2](/assets/images/iot_img2.png)
 
-The stations located around 106°W / 44°N are also suspicious.
+The stations located around 104°W / 44°N are also suspicious.
 
 We will see later if we should keep the data from the wrongly located stations or if we should handle them in any specific way.
 
