@@ -21,11 +21,11 @@ You can find the corresponding python notebook and the data [here](https://githu
 
 ## 1. Introduction
 
-The data for this project was provided by [Sigfox](https://www.sigfox.com/en){:target="_blank"}. They consisted of messages sent by IOT asset trackers and received by the Sigfox base stations network in the USA. The goal was to find a way to compute the geolocation of the trackers thanks to machine learning algorithms.
+The data for this project was provided by [Sigfox](https://www.sigfox.com/en){:target="_blank"}. It consisted of messages sent by IOT asset trackers and received by the Sigfox base stations network in the USA. The goal was to find a way to compute the geolocation of the trackers thanks to machine learning algorithms.
 
 The training set consisted of trackers messages, associated with the position of the trackers at the time of sending. The test set consisted in trackers messages without their position: the task was to compute them. It is important to note that a specific message could have been received by several base stations.
 
-The geolocations are defined by 2 coordinates: the latitude and the longitude. This exercise is thus a **regression** task on these 2 variables.
+The geolocations are defined by 2 coordinates: the latitude and the longitude. This exercise was thus a **regression** task on these 2 variables.
 
 #### Python imports
 ```python
