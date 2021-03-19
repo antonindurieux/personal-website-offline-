@@ -15,7 +15,7 @@ classes: wide
 
 The topic of this article will be to present a solution to geolocate IOT asset trackers thanks to a Machine Learning algorithm.
 
-This project was a group work done during my Post Master program in Big Data at Télécom Paris. 
+This project was a group work done during my Post Master program in Big Data at Télécom Paris, on which I subsequently brought some improvements. 
 
 You can find the corresponding python notebook and the data [here](https://github.com/antonindurieux/IoT_geolocalisation){:target="_blank"} (in french).
 
