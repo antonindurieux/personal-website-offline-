@@ -4,7 +4,7 @@ excerpt: 'Identifying the category of foliar diseases in apple trees thanks to a
 header:
   overlay_image: /assets/images/plant_pathology_cover.png
   show_overlay_excerpt: true
-  teaser: assets/images/plant_pathology_cover.png
+  teaser: assets/images/plant_pathology_teaser.png
 classes: wide
 ---
 
