@@ -8,6 +8,8 @@ header:
 classes: wide
 ---
 
+# Kaggle Plant Pathology 2021 competition
+
 ## 1. Introduction
 
 This article is based on the solution I submitted for the Kaggle [Plant Pathology 2021 challenge](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8) workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
@@ -34,6 +36,16 @@ For the purpose of the competition, a dataset of **18632** labeled apple tree le
 The test set used to evaluate the participant submissions was constituted of roughly **2700** images. 
 
 The pictures were provided in jpeg format of relatively high resolution, lots of them being 2676 x 4000 pixels, but the resolution and aspect ratio could somewhat vary for some images.
+
+<p float="center">
+  <center>
+  <img src="/assets/images/plant_pathology_exemple1.jpg" width="200" />
+  <img src="/assets/images/plant_pathology_exemple2.jpg" width="200" /> 
+  <img src="/assets/images/plant_pathology_exemple3.jpg" width="200" />
+  <img src="/assets/images/plant_pathology_exemple4.jpg" width="200" />
+  <br>
+  <em>Examples of images from the dataset</em></center>
+</p>
 
 The labels were provided in a separate csv file.
 
@@ -99,6 +111,44 @@ Batch size: 128
 ## 3. Data import and exploration
 
 
+```python
+# Images
+IMG_SOURCE = 640
+GCS_DS_PATH = KaggleDatasets().get_gcs_path("resized-plant2021")
+TRAIN_PATH = GCS_DS_PATH + f"/img_sz_{IMG_SOURCE}/"
+files_ls = tf.io.gfile.glob(TRAIN_PATH + '*.jpg')
+
+# Labels
+LABEL_FILE = "../input/plant-pathology-2021-fgvc8/train.csv"
+```
+
+```python
+mlb = MultiLabelBinarizer()
+
+df_train = pd.read_csv(LABEL_FILE)
+df_train["labels_list"] = df_train.labels.apply(lambda x: x.split(' '))
+
+df_class_dummies = pd.DataFrame(mlb.fit_transform(df_train.labels_list),columns=mlb.classes_, index=df_train.index)
+df_train = pd.concat([df_train[["image", "labels"]], df_class_dummies], axis=1)
+
+classes_to_predict = mlb.classes_
+
+df_train.head(5)
+```
+METTRE IMAGE DATAFRAME DE SORTIE
+
+```python
+print("Number of examples in the train set : {}".format(len(df_train)))
+```
+```
+Number of examples in the train set : 18632
+```
+```python
+print(classes_to_predict)
+```
+```
+['complex' 'frog_eye_leaf_spot' 'healthy' 'powdery_mildew' 'rust' 'scab']
+```
 
 
 
@@ -112,10 +162,6 @@ IMG_WIDTH = 426
 
 
 
-train_df_path = "../input/plant-pathology-2021-fgvc8/train.csv"
-
-#resized images
-train_image_path = f"../input/resized-plant2021/img_sz_{IMG_SOURCE}"
 
 
 ```
