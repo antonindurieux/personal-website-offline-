@@ -35,7 +35,87 @@ The test set used to evaluate the participant submissions was constituted of rou
 
 The pictures were provided in jpeg format of relatively high resolution, lots of them being 2676 x 4000 pixels, but the resolution and aspect ratio could somewhat vary for some images.
 
+The labels were provided in a separate csv file.
+
 ### 1.3 Performance metric
 
 The evaluation metric for this competition was the Mean F1-score. There are several ways to calculate the F1-score for multi-label targets (see the *average* parameter in the [Scikit-learn documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html){:target='_blank'} for exemple), leading to different results. It wasn't clearly specified what formula has been chosen for the competition.
 
+## 2. Imports and configuration
+
+```python
+# Imports
+import os
+import pandas as pd
+import numpy as np
+import seaborn as sns
+from matplotlib import pyplot as plt
+import tensorflow as tf
+
+from sklearn.preprocessing import MultiLabelBinarizer
+from sklearn.model_selection import train_test_split
+
+from kaggle_datasets import KaggleDatasets
+
+sns.set()
+```
+
+### 2.1 TPU configuration
+
+[TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} can dramatically speed up deep learning tasks and are thus well-suited for our task. They require some specific configuration steps : 
+
+```python
+try:
+    # TPU detection
+    tpu = tf.distribute.cluster_resolver.TPUClusterResolver() 
+    print("Running on TPU ", tpu.cluster_spec().as_dict()["worker"])
+    # Connection to TPU
+    tf.config.experimental_connect_to_cluster(tpu) 
+    # Initialization of the TPU devices
+    tf.tpu.experimental.initialize_tpu_system(tpu) 
+    # Create a state & distribution policy on the TPU devices
+    strategy = tf.distribute.experimental.TPUStrategy(tpu)
+
+except ValueError:
+    print("Not connected to a TPU runtime. Using CPU/GPU strategy")
+    strategy = tf.distribute.MirroredStrategy()
+```
+```
+Running on TPU  ['10.0.0.2:8470']
+```
+ According to the [Kaggle TPU documentation](https://www.kaggle.com/docs/tpu){:target='_blank'}, a rule of thumb is to use a batch size of 128 elements per core to take full advantage of the TPU capacities :
+
+```python
+BATCH_SIZE = 16 * strategy.num_replicas_in_sync
+
+print('Number of replicas:', strategy.num_replicas_in_sync)
+print('Batch size: %.i' % BATCH_SIZE)
+```
+```
+Number of replicas: 8
+Batch size: 128
+```
+
+## 3. Data import and exploration
+
+
+
+
+
+```
+AUTO = tf.data.experimental.AUTOTUNE
+
+# Constant variables
+IMG_SOURCE = 640
+IMG_HEIGHT = 426
+IMG_WIDTH = 426
+
+
+
+train_df_path = "../input/plant-pathology-2021-fgvc8/train.csv"
+
+#resized images
+train_image_path = f"../input/resized-plant2021/img_sz_{IMG_SOURCE}"
+
+
+```
