@@ -74,7 +74,7 @@ sns.set()
 
 ### 2.1 TPU configuration
 
-[TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} can dramatically speed up deep learning tasks and are thus well-suited for our task. They require some specific configuration steps : 
+We are going to use [TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} hardware, as they can dramatically speed up deep learning tasks and are thus well-suited for our task. They require some specific configuration steps : 
 
 ```python
 try:
@@ -100,12 +100,12 @@ Running on TPU  ['10.0.0.2:8470']
 ```python
 BATCH_SIZE = 16 * strategy.num_replicas_in_sync
 
-print('Number of replicas:', strategy.num_replicas_in_sync)
-print('Batch size: %.i' % BATCH_SIZE)
+print('Number of replicas :', strategy.num_replicas_in_sync)
+print('Batch size : %.i' % BATCH_SIZE)
 ```
 ```
-Number of replicas: 8
-Batch size: 128
+Number of replicas : 8
+Batch size : 128
 ```
 
 ## 3. Data import and exploration
