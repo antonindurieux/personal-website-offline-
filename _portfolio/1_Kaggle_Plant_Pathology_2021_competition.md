@@ -8,7 +8,8 @@ header:
 classes: wide
 ---
 
-# Kaggle Plant Pathology 2021 competition
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 ## 1. Introduction
 
@@ -201,13 +202,14 @@ labels = train_label_df[pathologies]
 
 train_label_df.head()
 ```
+
 |    | image                | labels                          |   complex |   frog_eye_leaf_spot |   healthy |   powdery_mildew |   rust |   scab |
-|---:|:---------------------|:--------------------------------|----------:|---------------------:|----------:|-----------------:|-------:|-------:|
-|  0 | 800113bb65efe69e.jpg | healthy                         |         0 |                    0 |         1 |                0 |      0 |      0       |
-|  1 | 8002cb321f8bfcdf.jpg | scab frog_eye_leaf_spot complex |         1 |                    1 |         0 |                0 |      0 |      1       |
-|  2 | 80070f7fb5e2ccaa.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1       |
-|  3 | 80077517781fb94f.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1       |
-|  4 | 800cbf0ff87721f8.jpg | complex                         |         1 |                    0 |         0 |                0 |      0 |      0       |
+|---:|:---------------------|:--------------------------------|:---------:|:--------------------:|:---------:|:----------------:|:------:|:------:|
+|  0 | 800113bb65efe69e.jpg | healthy                         |         0 |                    0 |        1 |                0 |      0 |      0       |
+|  1 | 8002cb321f8bfcdf.jpg | scab frog_eye_leaf_spot complex |         1 |                    1 |        0 |                0 |      0 |      1       |
+|  2 | 80070f7fb5e2ccaa.jpg | scab                            |         0 |                    0 |        0 |                0 |      0 |      1       |
+|  3 | 80077517781fb94f.jpg | scab                            |         0 |                    0 |        0 |                0 |      0 |      1       |
+|  4 | 800cbf0ff87721f8.jpg | complex                         |         1 |                    0 |        0 |                0 |      0 |      0       |
 
 Next we can visualize the label distribution :
 
@@ -262,7 +264,7 @@ fig = go.Figure(data=[go.Parcats(dimensions=dimensions,
 fig.show()
 ```
 
-<iframe width='1200' height='400' src='/assets/html/plant_pathology_parallel_cat_plot.html' frameborder='0'></iframe>
+<iframe width='930' height='500' src='/assets/html/plant_pathology_parallel_cat_plot.html' frameborder='0'></iframe>
 
 #### 3.2.2 Images exploration
 
@@ -283,7 +285,7 @@ print("Some image sizes found : ", img_sizes)
 Some image sizes found :  {(3000, 4000), (2672, 4000), (3456, 4608), (1728, 2592)}
 ```
 
-We can see that the images have different resolutions. However, these resolutions seem relatively high compared to the typical CNN input size (for comparison, the resolution required for Keras EfficientNetB7 implementation is 600 x 600 px), the images will need to be resized at a constant resolution to be fed in our model.  
+We can see that the images have different resolutions. However, these resolutions seem relatively high compared to the typical CNN input size (for comparison, the resolution required for Keras EfficientNetB7 implementation is 600x600 px), the images will need to be resized at a constant resolution to be fed in our model.  
 Next, we can plot a few examples of each pathology to get a sense of their visual characteristics :
 
 ```python
@@ -324,7 +326,7 @@ Our input pipeline will :
 
 A key step of the pipeline is also to cache the dataset in memory at first iteration with the `dataset.cache()` method. This way the training of our model will be way faster from the second iteration. This need to be applied before data augmentation, as we want to get different data augmentation at each epoch during the training.
 
-I tried various options for image augmentation but what seemed to work best was to not alter the original images too much, thus applying only subtle changes. We will apply changes to brightness, contrast and saturation. The images will also be flipped along their horizontal and vertical axis, and a small random crop (from 426 x 426 px to 400 x 400 px) will also be applied.
+I tried various options for image augmentation but what seemed to work best was to not alter the original images too much, thus applying only subtle changes. We will apply changes to brightness, contrast and saturation. The images will also be flipped along their horizontal and vertical axis, and a small random crop (from 426x426 px to 400x400 px) will also be applied.
 
 ```python
 IMG_HEIGHT_RESIZE = 426
@@ -334,7 +336,6 @@ IMG_WIDTH = 400
 
 # Autotuned data prefetching
 AUTO = tf.data.experimental.AUTOTUNE
-
 
 def crop_center(image):
     """
@@ -740,7 +741,7 @@ val_predictions_df.head()
 ```
 
 |    | image                | labels                          |   complex |   frog_eye_leaf_spot |   healthy |   powdery_mildew |   rust |   scab |
-|---:|:---------------------|:--------------------------------|----------:|---------------------:|----------:|-----------------:|-------:|-------:|
+|---:|:---------------------|:--------------------------------|:---------:|:--------------------:|:---------:|:----------------:|:------:|:------:|
 |  0 | bb22da4eb9e50703.jpg |	scab                            |	      0.0 |	                 0.0 |	     0.0 |	            0.0 |	   0.0 |	1.0 |
 |  1 | d3d237e0c3ca3465.jpg |	frog_eye_leaf_spot              |	      0.0 |                  1.0 |       0.0 |              0.0 |	   0.0 |	0.0 |
 |  2 | 9f9fc8097da181d2.jpg |	healthy                         |	      0.0 |                  0.0 |    	 1.0 |	            0.0 |	   0.0 |	0.0 |
