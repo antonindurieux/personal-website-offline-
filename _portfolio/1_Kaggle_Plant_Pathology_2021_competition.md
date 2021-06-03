@@ -95,7 +95,8 @@ sns.set()
 
 ### 2.1 TPU configuration
 
-We are going to use [TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} hardware, as they can dramatically speed up deep learning processes and are thus well-suited for our task. As stated in [this tutorial notebook](https://www.tensorflow.org/guide/tpu){:target='_blank'}, "TPUs are typically Cloud TPU workers, which are different from the local process running the user's Python program. Thus, you need to do some initialization work to connect to the remote cluster and initialize the TPUs." :
+We are going to use [TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} hardware, as they can dramatically speed up deep learning processes and are thus well-suited for our task. As stated in [this tutorial notebook](https://www.tensorflow.org/guide/tpu){:target='_blank'}, 
+> "TPUs are typically Cloud TPU workers, which are different from the local process running the user's Python program. Thus, you need to do some initialization work to connect to the remote cluster and initialize the TPUs."
 
 ```python
 try:
@@ -202,11 +203,11 @@ train_label_df.head()
 ```
 |    | image                | labels                          |   complex |   frog_eye_leaf_spot |   healthy |   powdery_mildew |   rust |   scab |
 |---:|:---------------------|:--------------------------------|----------:|---------------------:|----------:|-----------------:|-------:|-------:|
-|  0 | 800113bb65efe69e.jpg | healthy                         |         0 |                    0 |         1 |                0 |      0 |      0 |
-|  1 | 8002cb321f8bfcdf.jpg | scab frog_eye_leaf_spot complex |         1 |                    1 |         0 |                0 |      0 |      1 |
-|  2 | 80070f7fb5e2ccaa.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1 |
-|  3 | 80077517781fb94f.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1 |
-|  4 | 800cbf0ff87721f8.jpg | complex                         |         1 |                    0 |         0 |                0 |      0 |      0 |
+|  0 | 800113bb65efe69e.jpg | healthy                         |         0 |                    0 |         1 |                0 |      0 |      0       |
+|  1 | 8002cb321f8bfcdf.jpg | scab frog_eye_leaf_spot complex |         1 |                    1 |         0 |                0 |      0 |      1       |
+|  2 | 80070f7fb5e2ccaa.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1       |
+|  3 | 80077517781fb94f.jpg | scab                            |         0 |                    0 |         0 |                0 |      0 |      1       |
+|  4 | 800cbf0ff87721f8.jpg | complex                         |         1 |                    0 |         0 |                0 |      0 |      0       |
 
 Next we can visualize the label distribution :
 
@@ -261,7 +262,7 @@ fig = go.Figure(data=[go.Parcats(dimensions=dimensions,
 fig.show()
 ```
 
-<iframe width='1200' height='400' src='assets/html/plant_pathology_parallel_cat_plot.html' frameborder='0'></iframe>
+<iframe width='1200' height='400' src='/assets/html/plant_pathology_parallel_cat_plot.html' frameborder='0'></iframe>
 
 #### 3.2.2 Images exploration
 
@@ -506,7 +507,7 @@ Non-trainable params: 53,120
 _________________________________________________________________
 ```
 
-The performance metric evaluated was the F1-score. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d){:target='_blank'}, we can create a custom loss where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $y$ of the regular F1-score formula (defined in $\{0, 1\}$) by their probabilities (defined in $[0, 1]$) : 
+The performance metric evaluated was the F1-score. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d){:target='_blank'}, we can create a custom loss where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $$y$$ of the regular F1-score formula (defined in $$\{0, 1\}$$) by their probabilities (defined in $$[0, 1]$$) : 
 
 ```python
 # from https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d
