@@ -12,7 +12,7 @@ classes: wide
 
 ## 1. Introduction
 
-This article is based on the solution I submitted for the Kaggle [Plant Pathology 2021 challenge](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8) workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
+This article is based on the solution I submitted for the Kaggle [Plant Pathology 2021 challenge](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8){:target='_blank'} workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
 
 This competition was a good opportunity to practice and deepen my knowledge on [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network){:target='_blank'} implementation, and to explore some technical topics such as :
 - How to implement a CNN taking advantage of [TPUs](https://www.kaggle.com/docs/tpu){:target='_blank'} to speed up the computing steps ;
@@ -23,7 +23,7 @@ My solution ranked 11th out of 626 teams on the public leaderboard, and 36th on 
 
 ### 1.1 Task
 
-As stated on the [competition description page](https://www.kaggle.com/c/plant-pathology-2021-fgvc8/overview/description) : 
+As stated on the [competition description page](https://www.kaggle.com/c/plant-pathology-2021-fgvc8/overview/description){:target='_blank'} : 
 
 > "Apples are one of the most important temperate fruit crops in the world. Foliar (leaf) diseases pose a major threat to the overall productivity and quality of apple orchards. The current process for disease diagnosis in apple orchards is based on manual scouting by humans, which is time-consuming and expensive."
 
@@ -60,15 +60,15 @@ The evaluation metric for this competition was the Mean F1-score. There are seve
 My best score was reached by averaging the output of 3 different models :
 - a ResNet50, 
 - an EfficientNetB7, 
-- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html) model.
+- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html){:target='_blank'} model.
 
 As the training processes for these 3 models are relatively similar, I will only expand on the ResNet50 training for the purpose of this article. The main changes between the different model training were different image sizes as input, and different base model weights.  
-The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge). 
+The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge){:target='_blank'}. 
 
 On top of the training process optimizations, significant results improvements were brought by :
 - Suitable image augmentation,
 - Handling the cases were no label has been predicted by the model (probability of every label inferior to the chosen threshold),
-- Test Time Augmentation (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d) for a brief explanation on how it works).
+- Test Time Augmentation (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d){:target='_blank'} for a brief explanation on how it works).
 
 ## 2. Imports and configuration
 
@@ -95,7 +95,7 @@ sns.set()
 
 ### 2.1 TPU configuration
 
-We are going to use [TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit) hardware, as they can dramatically speed up deep learning processes and are thus well-suited for our task. As stated in [this tutorial notebook](https://www.tensorflow.org/guide/tpu), "TPUs are typically Cloud TPU workers, which are different from the local process running the user's Python program. Thus, you need to do some initialization work to connect to the remote cluster and initialize the TPUs." :
+We are going to use [TPUs](https://en.wikipedia.org/wiki/Tensor_Processing_Unit){:target='_blank'} hardware, as they can dramatically speed up deep learning processes and are thus well-suited for our task. As stated in [this tutorial notebook](https://www.tensorflow.org/guide/tpu){:target='_blank'}, "TPUs are typically Cloud TPU workers, which are different from the local process running the user's Python program. Thus, you need to do some initialization work to connect to the remote cluster and initialize the TPUs." :
 
 ```python
 try:
@@ -116,7 +116,7 @@ except ValueError:
 ```
 Running on TPU  ['10.0.0.2:8470']
 ```
-According to the [Kaggle TPU documentation](https://www.kaggle.com/docs/tpu){:target='_blank'}, a rule of thumb is to use a batch size of 128 elements per core to take full advantage of the TPU capacities :
+According to the [Kaggle TPU documentation](https://www.kaggle.com/docs/tpu){:target='_blank'}{:target='_blank'}, a rule of thumb is to use a batch size of 128 elements per core to take full advantage of the TPU capacities :
 
 ```python
 BATCH_SIZE = 16 * strategy.num_replicas_in_sync
@@ -145,7 +145,7 @@ train_label_csv = "../input/plant-pathology-2021-fgvc8/train.csv"
 train_label_df = pd.read_csv(train_label_csv)
 ```
 
-As explained in [his part of the TensorFlow tutorial](https://www.tensorflow.org/guide/tpu#load_the_dataset), the TPUs need to be fed with data quickly enough. This is why we cannot use the local file system as usual. We will get the data from their GCS bucket so we can use the `tf.data.Dataset` API to input the images in our Neural Network. Here we just specify the images paths :
+As explained in [his part of the TensorFlow tutorial](https://www.tensorflow.org/guide/tpu#load_the_dataset){:target='_blank'}, the TPUs need to be fed with data quickly enough. This is why we cannot use the local file system as usual. We will get the data from their GCS bucket so we can use the `tf.data.Dataset` API to input the images in our Neural Network. Here we just specify the images paths :
 
 ```python
 # Get GCS bucket path
@@ -315,7 +315,7 @@ plt.show()
 
 ## 4. Data augmentation and dataset generation
 
-The next step will be to create tensorflow [datasets](https://www.tensorflow.org/api_docs/python/tf/data/Dataset) from our data, for the training and validation sets. Datasets allow to work efficiently with TPUs by feeding them with data fast enough.  
+The next step will be to create tensorflow [datasets](https://www.tensorflow.org/api_docs/python/tf/data/Dataset){:target='_blank'} from our data, for the training and validation sets. Datasets allow to work efficiently with TPUs by feeding them with data fast enough.  
 Our input pipeline will :
 1. Read and decode images ;
 2. Crop them to their central square and resize them;
@@ -449,9 +449,9 @@ ds_val = get_validation_dataset(val_files, val_labels)
 Now we will move to the training process of our model. As explained in the introduction, my final solution for this challenge was to average the outputs of 3 models : 
 - a ResNet50, 
 - an EfficientNet, 
-- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html) model (thanks to [this](https://github.com/faustomorales/vit-keras) helpful implementation).
+- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html){:target='_blank'} model (thanks to [this](https://github.com/faustomorales/vit-keras){:target='_blank'} helpful implementation).
 
-As the training processes for these 3 models are relatively similar, I will only present the ResNet50 training in the following. The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge). 
+As the training processes for these 3 models are relatively similar, I will only present the ResNet50 training in the following. The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge){:target='_blank'}. 
 
 So here we are going to use the ResNet50 architecture with the imagenet weights as a starting point, but all the layers will be retrainable.  
 As we need to train our model on 6 different labels, the output layer will be a dense layer with 6 outputs from sigmoid activations.
@@ -506,7 +506,7 @@ Non-trainable params: 53,120
 _________________________________________________________________
 ```
 
-The performance metric evaluated was the F1-score. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d), we can create a custom loss where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $y$ of the regular F1-score formula (defined in $\{0, 1\}$) by their probabilities (defined in $[0, 1]$) : 
+The performance metric evaluated was the F1-score. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d){:target='_blank'}, we can create a custom loss where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $y$ of the regular F1-score formula (defined in $\{0, 1\}$) by their probabilities (defined in $[0, 1]$) : 
 
 ```python
 # from https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d
