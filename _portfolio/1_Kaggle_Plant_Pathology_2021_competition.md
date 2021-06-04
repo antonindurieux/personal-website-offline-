@@ -72,6 +72,10 @@ On top of the training process optimizations, significant results improvements w
 - Test Time Augmentation (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d){:target='_blank'} for a brief explanation on how it works).
 
 ![img7](/assets/images/plant_pathology_img7.png)
+<p float="center">
+  <center>
+  <em>Processing pipeline</em></center>
+</p>
 
 ## 2. Imports and configuration
 
