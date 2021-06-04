@@ -15,10 +15,10 @@ classes: wide
 
 This article is based on the solution I submitted for the Kaggle [Plant Pathology 2021 challenge](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8){:target='_blank'} workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
 
-This competition was a good opportunity to practice and deepen my knowledge on [convolutional neural networks](https://en.wikipedia.org/wiki/Convolutional_neural_network){:target='_blank'} implementation, and to explore some technical topics such as :
-- How to implement a CNN taking advantage of [TPUs](https://www.kaggle.com/docs/tpu){:target='_blank'} to speed up the computing steps ;
-- How to build an efficient TensorFlow input pipeline with the [tf.data API](https://www.tensorflow.org/guide/data){:target='_blank'} ;
-- How to take advantage of a pre-trained neural network with [transfer learning](https://en.wikipedia.org/wiki/Transfer_learning){:target='_blank'} to achieve high performance.
+This competition was a good opportunity to explore some technical topics related to Convolutional Neural Networks such as :
+- How to implement a CNN taking advantage of [TPUs](https://www.kaggle.com/docs/tpu) to speed up the computing steps ;
+- How to build an efficient TensorFlow input pipeline with the [tf.data API](https://www.tensorflow.org/guide/data) ;
+- What loss could be suitable for optimizing the F1-score.
 
 My solution ranked 11th out of 626 teams on the public leaderboard, and 36th on the private leaderboard (top 6%).
 
@@ -70,6 +70,8 @@ On top of the training process optimizations, significant results improvements w
 - Suitable image augmentation,
 - Handling the cases were no label has been predicted by the model (probability of every label inferior to the chosen threshold),
 - Test Time Augmentation (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d){:target='_blank'} for a brief explanation on how it works).
+
+![img7](/assets/images/plant_pathology_img7.png)
 
 ## 2. Imports and configuration
 
