@@ -777,6 +777,13 @@ frog_eye_leaf_spot rust              1
 frog_eye_leaf_spot healthy           1
 Name: labels, dtype: int64
 ```
+
+```python
+# Get a DataFrame with one-hot-encoding of the ground truth
+ground_truth_df = format_predictions(val_labels.values, val_files, thresholds=[
+                                     0.5, 0.5, 0.5, 0.5, 0.5, 0.5])
+```
+
 ```python
 index = np.arange(len(pathologies))
 bar_width = 0.35
