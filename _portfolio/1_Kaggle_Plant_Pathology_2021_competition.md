@@ -1,6 +1,6 @@
 ---
 title: 'Kaggle Plant Pathology 2021 competition'
-excerpt: 'Identifying the category of foliar diseases in apple trees thanks to models implemented with Keras and TensorFlow, on TPU hardware.'
+excerpt: 'Identifying the category of foliar diseases in apple trees thanks to neural networks implemented with Keras and TensorFlow, on TPU hardware.'
 header:
   overlay_image: /assets/images/plant_pathology_cover.png
   show_overlay_excerpt: true
