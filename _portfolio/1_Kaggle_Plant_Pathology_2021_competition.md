@@ -1,6 +1,6 @@
 ---
 title: 'Kaggle Plant Pathology 2021 competition'
-excerpt: 'Identifying the category of foliar diseases in apple trees thanks to a CNN implemented with Keras and TensorFlow, on TPU hardware.'
+excerpt: 'Identifying the category of foliar diseases in apple trees thanks to models implemented with Keras and TensorFlow, on TPU hardware.'
 header:
   overlay_image: /assets/images/plant_pathology_cover.png
   show_overlay_excerpt: true
@@ -13,14 +13,17 @@ classes: wide
 
 ## 1. Introduction
 
-This article is based on the solution I submitted for the Kaggle [Plant Pathology 2021 challenge](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8){:target='_blank'} workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
+This article is based on the solution I submitted for the Kaggle [**Plant Pathology 2021 challenge**](https://www.kaggle.com/c/plant-pathology-2021-fgvc8){:target='_blank'}, which took place from March 15 2021 to May 27 2021. This competition was part of the Fine-Grained Visual Categorization [FGVC8](https://sites.google.com/view/fgvc8){:target='_blank'} workshop at the Computer Vision and Pattern Recognition Conference [CVPR 2021](http://cvpr2021.thecvf.com/){:target='_blank'}.
 
-This competition was a good opportunity to explore some technical topics related to Convolutional Neural Networks such as :
-- How to implement a CNN taking advantage of [TPUs](https://www.kaggle.com/docs/tpu) to speed up the computing steps ;
-- How to build an efficient TensorFlow input pipeline with the [tf.data API](https://www.tensorflow.org/guide/data) ;
-- What loss could be suitable for optimizing the F1-score.
+This competition was a good opportunity to explore some technical topics related to Convolutional Neural Networks and computer vision such as :
 
-My solution ranked 11th out of 626 teams on the public leaderboard, and 36th on the private leaderboard (top 6%).
+- How to implement a CNN taking advantage of TPUs to speed up the computing steps ;
+- How to build an efficient TensorFlow input pipeline with the `tf.data` API ;
+- What loss could be suitable for optimizing the F1-score ;
+- What are Vision Transformer neural networks.
+
+
+My solution ranked **11th out of 626 teams** on the public leaderboard, and **36th** on the private leaderboard **(top 6%)**.
 
 ### 1.1 Task
 
@@ -54,28 +57,50 @@ The labels were provided in a separate csv file.
 
 ### 1.3 Performance metric
 
-The evaluation metric for this competition was the Mean F1-score. There are several ways to calculate the F1-score for multi-label targets (see the *average* parameter in the [Scikit-learn documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html){:target='_blank'} for exemple), leading to different results. It wasn't clearly specified what formula has been chosen for the competition.
+The evaluation metric for this competition was the **Mean F1-score**. There are several ways to calculate the F1-score for multi-label targets (see the `average` parameter in the [Scikit-learn documentation](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.f1_score.html){:target='_blank'} for exemple), leading to different results. It wasn't clearly specified what formula has been chosen for the competition.
 
 ### 1.4 General approach
 
 My best score was reached by averaging the output of 3 different models :
-- a ResNet50, 
-- an EfficientNetB7, 
-- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html){:target='_blank'} model.
+- a **ResNet50**, 
+- an **EfficientNetB7**, 
+- and a **Vision Transformer** model (see the [next paragraph](#15-what-is-a-vision-transformer-model-) for a brief explanation about Vision Transformers).
 
-As the training processes for these 3 models are relatively similar, I will only expand on the ResNet50 training for the purpose of this article. The main changes between the different model training were different image sizes as input, and different base model weights.  
-The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge){:target='_blank'}. 
+As the implementation of the training processes for these 3 models are relatively similar, I will only expand on the ResNet50 training for the purpose of this article. The main changes between the different model implementations were different image sizes as input, and different starting weights.  
+The code to train each model is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge){:target='_blank'}. 
 
 On top of the training process optimizations, significant results improvements were brought by :
-- Suitable image augmentation,
-- Handling the cases were no label has been predicted by the model (probability of every label inferior to the chosen threshold),
-- Test Time Augmentation (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d){:target='_blank'} for a brief explanation on how it works).
+- Suitable **image augmentation**,
+- Handling the cases were no label has been predicted by the model (when probabilities of every label is inferior to the chosen threshold),
+- **Test Time Augmentation** (see [this article](https://towardsdatascience.com/test-time-augmentation-tta-and-how-to-perform-it-with-keras-4ac19b67fb4d){:target='_blank'} for a brief explanation on how it works).
 
 ![img7](/assets/images/plant_pathology_img7.png)
 <p float="center">
   <center>
   <em>Processing pipeline</em></center>
 </p>
+
+### 1.5 What is a Vision Transformer model ?
+
+Vision Transformers (ViT) are relatively new and less well-established than Convolutional Neural Networks so far. Nonetheless, they are becoming frequently used in Kaggle competitions and can perform very well, achieving comparable and sometimes better results than the more usual CNN models.  
+Vision Transformers are deriving from [**transformers model**](https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)){:target='_blank'} used in NLP, which are designed to handle sequential input data and work based on the attention mechanism. But how does it work with images ?  
+
+1. The image is divided into a grid of square patches ;
+2. The patches are flatten into single vectors ;
+3. These vectors are projected to lower dimension ;
+4. Position embeddings are learned for each patch ;
+5. The sequence is fed to a Transformer Encoder ;
+6. The output of the transformer is fed into a classification layer.  
+
+![](/assets/images/ViT_diagram.gif)
+
+Vision Transformers require a huge amount of data to be trained, but they can then be fine-tuned to the task at hand. The best way to easily use a ViT is thus to load pre-trained weights and to launch a few more training iteration on your dataset, with an adapted dense layer for the output.  
+
+Here is a list of interesting references I found about Vision Transformers :
+- The original article introducing Vision Transformers : ["An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"](https://arxiv.org/abs/2010.11929){:target='_blank'} ;
+- A short article explaining Vision Transformers on the Google AI Blog : ["
+Transformers for Image Recognition at Scale "](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html){:target='_blank'} ;
+- A nice blog post explaining Vision Transformers and showing an implementation with PyTorch : ["How the Vision Transformer (ViT) works in 10 minutes: an image is worth 16x16 words"](https://theaisummer.com/vision-transformer/){:target='_blank'}.
 
 ## 2. Imports and configuration
 
@@ -124,7 +149,7 @@ except ValueError:
 ```
 Running on TPU  ['10.0.0.2:8470']
 ```
-According to the [Kaggle TPU documentation](https://www.kaggle.com/docs/tpu){:target='_blank'}{:target='_blank'}, a rule of thumb is to use a batch size of 128 elements per core to take full advantage of the TPU capacities :
+According to the [Kaggle TPU documentation](https://www.kaggle.com/docs/tpu){:target='_blank'}, a rule of thumb is to use a batch size of 128 elements per core to take full advantage of the TPU capacities :
 
 ```python
 BATCH_SIZE = 16 * strategy.num_replicas_in_sync
@@ -140,8 +165,8 @@ Batch size :  128
 ## 3. Data import and exploration
 
 Two sets of data need to be accessed to :
-- The labels are recorded in a csv file that can be handled in the usual manner with Pandas ;
-- The images will be collected from their Google Cloud Storage (GCS) bucket to take advantage of the TPUs. 
+- The **labels** are recorded in a csv file that can be handled in the usual manner with Pandas ;
+- The **images** will be collected from their Google Cloud Storage (GCS) bucket to take advantage of the TPUs. 
 
 We are also going to do some data exploration in order to better understand them and the task at hand. 
 
@@ -188,7 +213,7 @@ train_label_df.head()
 |  3 | 80077517781fb94f.jpg | scab                            |
 |  4 | 800cbf0ff87721f8.jpg | complex                         |
 
-We can see on the second row that an image can be associated with several labels (separated by a space in the csv), hence our task will be multi-label classification. To handle this, we are next going to one-hot-encode these labels :
+We can see on the second row that an image can be associated with several labels (separated by a space in the csv), hence our task will be multi-label classification. To handle this, we are next going to **one-hot-encode** these labels :
 
 ```python
 # Labels one-hot-encoding
@@ -244,7 +269,7 @@ for index, value in multi_label_count.items():
 3 labels : 200 images
 ```
 
-Finally, we can plot an interactive parallel categories diagram to better understand the multi-label cases distribution. The complex cases are highlighted in green :
+Finally, we can plot an interactive parallel categories diagram to better understand the multi-label cases distribution. The **complex** cases are highlighted in green :
 
 ```python
 # Create dimensions
@@ -291,7 +316,7 @@ print("Some image sizes found : ", img_sizes)
 Some image sizes found :  {(3000, 4000), (2672, 4000), (3456, 4608), (1728, 2592)}
 ```
 
-We can see that the images have different resolutions. However, these resolutions seem relatively high compared to the typical CNN input size (for comparison, the resolution required for Keras EfficientNetB7 implementation is 600x600 px), the images will need to be resized at a constant resolution to be fed in our model.  
+We can see that the images have different resolutions. However, these resolutions seem relatively high compared to the typical CNN input size (for comparison, the resolution required for Keras EfficientNetB7 implementation is 600 x 600 px), the images will need to be resized at a constant resolution to be fed in our model.  
 Next, we can plot a few examples of each pathology to get a sense of their visual characteristics :
 
 ```python
@@ -324,15 +349,15 @@ plt.show()
 
 ## 4. Data augmentation and dataset generation
 
-The next step will be to create tensorflow [datasets](https://www.tensorflow.org/api_docs/python/tf/data/Dataset){:target='_blank'} from our data, for the training and validation sets. Datasets allow to work efficiently with TPUs by feeding them with data fast enough.  
+The next step will be to create tensorflow [**datasets**](https://www.tensorflow.org/api_docs/python/tf/data/Dataset){:target='_blank'} from our data, for the training and validation sets. Datasets allow to work efficiently with TPUs by feeding them with data fast enough.  
 Our input pipeline will :
 1. Read and decode images ;
 2. Crop them to their central square and resize them;
 3. Apply image augmentation to the training set, the output being 400 x 400 px images ;
 
-A key step of the pipeline is also to cache the dataset in memory at first iteration with the `dataset.cache()` method. This way the training of our model will be way faster from the second iteration. This need to be applied before data augmentation, as we want to get different data augmentation at each epoch during the training.
+A key step of the pipeline is also to **cache the dataset in memory** at first iteration with the `dataset.cache()` method. This way the training of our model will be way faster from the second iteration. This need to be applied before data augmentation, as we want to get different data augmentation at each epoch during the training.
 
-I tried various options for image augmentation but what seemed to work best was to not alter the original images too much, thus applying only subtle changes. We will apply changes to brightness, contrast and saturation. The images will also be flipped along their horizontal and vertical axis, and a small random crop (from 426x426 px to 400x400 px) will also be applied.
+I tried various options for image augmentation but what seemed to work best was to not alter the original images too much, thus applying only subtle changes. We will apply changes to brightness, contrast and saturation. The images will also be flipped along their horizontal and vertical axis, and a small random crop (from 426 x 426 px to 400 x 400 px) will also be applied.
 
 ```python
 IMG_HEIGHT_RESIZE = 426
@@ -455,14 +480,14 @@ ds_val = get_validation_dataset(val_files, val_labels)
 ## 5. Training of the CNN model
 
 Now we will move to the training process of our model. As explained in the introduction, my final solution for this challenge was to average the outputs of 3 models : 
-- a ResNet50, 
-- an EfficientNet, 
-- and a [Vision Transformer](https://ai.googleblog.com/2020/12/transformers-for-image-recognition-at.html){:target='_blank'} model (thanks to [this](https://github.com/faustomorales/vit-keras){:target='_blank'} helpful implementation).
+- a **ResNet50**, 
+- an **EfficientNet**, 
+- and a **Vision Transformer** model (thanks to [this](https://github.com/faustomorales/vit-keras){:target='_blank'} helpful implementation).
 
 As the training processes for these 3 models are relatively similar, I will only present the ResNet50 training in the following. The code to train the other 2 models is available in my corresponding [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge){:target='_blank'}. 
 
 So here we are going to use the ResNet50 architecture with the imagenet weights as a starting point, but all the layers will be retrainable.  
-As we need to train our model on 6 different labels, the output layer will be a dense layer with 6 outputs from sigmoid activations.
+As we need to train our model on 6 different labels, the output layer will be a dense layer with **6 outputs** using sigmoid activations.
 
 ```python
 IMG_SHAPE = (IMG_HEIGHT, IMG_WIDTH) + (3,)
@@ -514,7 +539,7 @@ Non-trainable params: 53,120
 _________________________________________________________________
 ```
 
-The performance metric evaluated was the F1-score. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d){:target='_blank'}, we can create a custom loss where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $$y$$ of the regular F1-score formula (defined in $$\{0, 1\}$$) by their probabilities (defined in $$[0, 1]$$) : 
+The performance metric evaluated was the **F1-score**. To better align our loss function with the evaluation metric, it would be nice to directly optimize for the F1-score, but it is not differentiable. To overcome this, as explained in this [interesting article](https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d){:target='_blank'}, we can create a **custom loss** where we modify the F1-score such as we replace the counts of true positives, false positives and false negatives by the sums of their likelihood values, by replacing each $$y$$ of the regular F1-score formula (defined in $$\{0, 1\}$$) by their probabilities (defined in $$[0, 1]$$) : 
 
 ```python
 # from https://towardsdatascience.com/the-unknown-benefits-of-using-a-soft-f1-loss-in-classification-systems-753902c0105d
@@ -642,7 +667,7 @@ Epoch 00025: early stopping
 ```
 
 We reach a F1-score slightly higher than 0.88 on our validation set.  
-As expected, you can notice on the training logs that the first iteration was relatively slow (during 637 s) while the training and validation datasets were being cached, then the epochs got much faster (45 s) for the next iterations thanks to the TPUs.  
+As expected, you can notice on the training logs that the first iteration was relatively slow (during 637 s) while the training and validation datasets were being cached, then the epochs got **much faster** (45 s) for the next iterations thanks to the TPUs.  
 Now let's visualize the learning curves :
 
 ```python
@@ -861,3 +886,25 @@ We can see that our model struggle with the complex cases. But as the Kaggle dat
 > "Unhealthy leaves with too many diseases to classify visually will have the complex class".
 
 From these images it is unclear what visual clues are not well captured by our CNN, but most of the errors seem to be fairly difficult cases.
+
+## 7. Submissions
+
+The code for inference on the test set is presented in [this notebook](http://localhost:8888/lab/tree/Plant_Pathology_2021-FGVC8_Kaggle_challenge/4_plant-pathology-2021-fgvc8-inference.ipynb){:target='_blank'}. The main steps are :
+
+1. Generating the test datasets to feed each model. Test-Time Augmentation is applied on the test set with the same alterations (brightness, contrast, saturation, flips and crops) as for the training process.
+2. Each trained model is loaded and predictions are performed on the test set. Several round of predictions are performed for TTA, then averaged by model.
+3. Probability matrices of the 3 models are averaged. 
+4. The final probability matrix is processed to get the labels associated to each image.
+
+Here are the F1-scores computed on the complete test dataset for different models : 
+
+| Model                               | F1-score |
+|-------------------------------------|----------|
+| ResNet50                            | 0.82491  |
+| EfficientNetB7                      | 0.82978  |
+| Vision Transformer                  | 0.82995  |  
+| Averaging of the 3 models           | 0.85425  |
+| Averaging of the 3 models with TTA  | 0.86502  |
+
+We notice that averaging the models was a good way to boost the score (as is often the case in Kaggle competitions). Using TTA also increased the score significantly.  
+On the downside, resorting to multiple models and several rounds of prediction was very time-consuming and could thus be a serious limitation for real world use cases.
