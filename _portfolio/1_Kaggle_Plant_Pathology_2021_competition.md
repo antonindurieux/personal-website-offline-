@@ -25,6 +25,8 @@ This competition was a good opportunity to explore some technical topics related
 
 My solution ranked **11th out of 626 teams** on the public leaderboard, and **36th** on the private leaderboard **(top 6%)**.
 
+The entire code is available in this [Github repository](https://github.com/antonindurieux/Plant_Pathology_2021-FGVC8_Kaggle_challenge).
+
 ### 1.1 Task
 
 As stated on the [competition description page](https://www.kaggle.com/c/plant-pathology-2021-fgvc8/overview/description){:target='_blank'} : 
