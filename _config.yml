@@ -83,9 +83,9 @@ defaults:
       share: true
 
 analytics:
-  provider: "google"
+  provider: "google-universal"
   google:
-    tracking_id: "G-49TVF27YEE"
+    tracking_id: "G-L2JVKNBGDP"
     anonymize_ip: true
 
 # Exclude from processing.
