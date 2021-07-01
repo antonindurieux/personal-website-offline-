@@ -85,7 +85,7 @@ defaults:
 analytics:
   provider: "google-universal"
   google:
-    tracking_id: "G-L2JVKNBGDP"
+    tracking_id: "UA-191438067-1"
     anonymize_ip: true
 
 # Exclude from processing.
